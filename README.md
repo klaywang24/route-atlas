@@ -5,8 +5,8 @@
 > table with source grades, policy and traffic-rights background, and an explicit list of
 > what could **not** be verified. **Pure static HTML, no server, no build step, zero running cost.**
 
-[![pages](https://img.shields.io/badge/pages-17%20route%20pages%20%C2%B7%203%20families-2b5f8f)](#what-it-is)
-[![routes](https://img.shields.io/badge/routes-1%2C159%20rows%20%C2%B7%20per--direction%20weekly-4a5d3a)](#conventions)
+[![pages](https://img.shields.io/badge/pages-18%20route%20pages%20%C2%B7%203%20families-2b5f8f)](#what-it-is)
+[![routes](https://img.shields.io/badge/routes-1%2C208%20rows%20%C2%B7%20per--direction%20weekly-4a5d3a)](#conventions)
 [![fares](https://img.shields.io/badge/fares-deliberately%20unverified-b8893e)](#conventions)
 [![License](https://img.shields.io/badge/license-PolyForm--Noncommercial--1.0.0-4a5d3a)](LICENSE)
 [![Live](https://img.shields.io/badge/live-atlas.klay--wang.com%20(soon)-a0392f)](https://atlas.klay-wang.com/)
@@ -20,13 +20,13 @@
 
 ## What it is
 
-Three **departure families**, seventeen pages, one home page with a world-flow diagram.
+Three **departure families**, eighteen pages, one home page with a world-flow diagram.
 Content is in Chinese; the data modules and tooling are language-neutral.
 
 | Family | Pages |
 |---|---|
 | **China departures** 中国出发 | US · Europe (13 countries + Hong Kong as the quota-free transit port) · Asia (9 destinations) · Australia/NZ · Canada · Africa |
-| **US departures** 美国出发 | China (mirror) · Europe (14 cities × 10 gateways) · Asia (Hong Kong vs Taipei as the transit port home) · Mexico & Caribbean · South America (incl. "how to connect from China") · Australia/NZ & South Pacific |
+| **US departures** 美国出发 | China (mirror) · Europe (14 cities × 10 gateways) · Asia (Hong Kong vs Taipei as the transit port home) · Mexico & Caribbean · South America (incl. "how to connect from China") · Australia/NZ & South Pacific · Canada ("the boycott year") |
 | **Europe departures** 欧洲出发 | China (mirror) · US (mirror) · Asia ("the Gulf year") · Africa & Indian Ocean |
 
 Every page follows the same structure:
