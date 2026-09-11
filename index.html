@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>航线图志 · Route Atlas</title>
+<!-- THEME:START --><style id="fm-theme">
+/* 五件套共用的调色板。唯一实现，别在各文件里再写一份 :root。
+   改这里之后跑一次： python3 build_theme.py
+   （--check 只读比对，已挂 pre-commit）
+
+   为什么要有它：抽取之前这套色散在 5 份 HTML 里、三种不同形状（20/15/16 个变量），
+   而且已经漂了——万豪选择器与航司选择器的 accent-bg/gold-soft/teal-soft 三个
+   透明度值与另外两份不一致（.04 vs .05、.12 vs .14、.10 vs .12）。没人会发现。
+
+   深色三条规则的分工：
+     :root                                        亮色，基准
+     @media(prefers-color-scheme) :not([light])   跟随系统
+     :root[data-theme="dark"]                     手动切换，优先级最高
+   五份 HTML 都有手动开关（localStorage fm-theme，2026-08-17 起统一），设了值就走第三条；
+   没设值时跟随系统。同一把钥匙，任一页切换、五页同步。 */
+
+:root{
+ --bg:#F1ECDF;--bg-card:#EBE5D6;--bg-card-hover:#E5DECC;--bg-deep:#E0D8C2;
+ --ink:#1A1410;--ink-soft:#3D352D;--muted:#6B5D4F;--muted-soft:#9B8E7C;
+ --accent:#FF2400;--accent-deep:#CC1D00;--accent-soft:rgba(255,36,0,.08);--accent-bg:rgba(255,36,0,.04);
+ --gold:#B8893E;--gold-soft:rgba(184,137,62,.12);
+ --teal:#00A86B;--teal-soft:rgba(0,168,107,.10);
+ --moss:#00A86B;--moss-soft:rgba(0,168,107,.10);
+ --rule:#C8BFA8;--rule-soft:#D8D0BA;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}}
+:root[data-theme="dark"]{
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}
+</style><!-- THEME:END -->
+
+<script>/* 主题先定死 light/dark（看板同款：图标显隐靠 html[data-theme] 精确匹配，属性必须始终显式；也防 FOUC）。钥匙仍是 fm-theme。 */
+(function(){var d=document.documentElement,s=null;try{s=localStorage.getItem("fm-theme");}catch(e){}
+d.setAttribute("data-theme",s||((window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"));})();</script>
+<!-- flowviz:runtime v1.0.0 -->
+<style id="fv-css">
+.fv{position:relative}
+.fv .fv-wrap{position:relative;background:var(--bg-card,#f5f2ea);border:1px solid var(--rule,#c8bfa8);border-radius:10px;overflow:hidden}
+.fv svg{display:block;width:100%;height:auto}
+.fv canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.fv .fv-col{fill:var(--muted-soft,#9b8e7c);font-size:10px;letter-spacing:.14em;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-grp{fill:var(--muted-soft,#9b8e7c);font-size:10px;letter-spacing:.12em;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-edge{fill:none;stroke-linecap:butt;transition:stroke-opacity .2s;cursor:pointer}
+.fv .fv-edge.dash{stroke-dasharray:5 5}
+.fv .fv-edge.dim{stroke-opacity:.05!important}
+.fv .fv-node rect{cursor:pointer}
+.fv .fv-node.card rect{fill:var(--bg,#f1ecdf);stroke:var(--rule,#c8bfa8);rx:6}
+.fv .fv-node.bar rect{stroke:none}
+.fv .fv-node text{fill:var(--ink,#1a1410);font-size:11.5px;font-family:'Noto Sans SC','IBM Plex Sans',sans-serif;pointer-events:none;paint-order:stroke;stroke:var(--bg-card,#f5f2ea);stroke-width:3px;stroke-linejoin:round}
+.fv .fv-node.card text{stroke:none;font-weight:600;font-size:12px}
+.fv .fv-node text.sm{fill:var(--muted,#6b5d4f);font-size:10px;font-weight:400;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-node text.best{font-weight:700}
+.fv .fv-node.on rect{stroke:var(--accent,#a0392f);stroke-width:1.6}
+.fv .fv-node.dim rect,.fv .fv-node.dim text,.fv .fv-node.dim image{opacity:.28}
+.fv .fv-tip{position:absolute;pointer-events:none;background:var(--ink,#1a1410);color:var(--bg,#f1ecdf);font-size:12px;line-height:1.55;padding:7px 10px;border-radius:6px;max-width:330px;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:5}
+.fv .fv-tip b{display:block;font-size:12.5px;margin-bottom:2px}
+.fv .fv-ctl{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 8px;font-size:12px}
+.fv .fv-ctl .lab{color:var(--muted,#6b5d4f);margin-right:4px}
+.fv .fv-ctl .cp{display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:2px 9px;border:1px solid var(--rule,#c8bfa8);border-radius:999px;color:var(--ink-soft,#3d352d);background:var(--bg-card,#f5f2ea)}
+.fv .fv-ctl .cp.off{opacity:.32}
+.fv .fv-ctl .cp i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.fv .fv-ctl .cp i.d{background:repeating-linear-gradient(90deg,currentColor 0 3px,transparent 3px 6px)!important}
+.fv .fv-note{font-size:12.5px;color:var(--muted,#6b5d4f);line-height:1.7;margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){.fv canvas{display:none}}
+</style>
+<script id="fv-runtime" data-v="1.0.0">
+/* FlowViz embed runtime v1.0.0 —— 唯一实现，由 ~/.claude/skills/flow-viz/flowviz.py 注入，别手改（tools/inject_flowviz.py --check 会报） */
+(function(){
+  if(window.FlowViz && window.FlowViz.version==="1.0.0") return;
+  function el(t,a,p){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+  function embed(root, spec){
+    root.classList.add('fv'); root.innerHTML='';
+    var ctl=document.createElement('div'); ctl.className='fv-ctl'; root.appendChild(ctl);
+    var wrap=document.createElement('div'); wrap.className='fv-wrap'; root.appendChild(wrap);
+    var svg=el('svg',{xmlns:'http://www.w3.org/2000/svg'},wrap); var cv=document.createElement('canvas'); wrap.appendChild(cv);
+    var tip=document.createElement('div'); tip.className='fv-tip'; tip.hidden=true; wrap.appendChild(tip);
+    var note=document.createElement('p'); note.className='fv-note'; root.appendChild(note);
+    var S=null, nodes={}, edges=[], sel=null, catOff={}, parts=[], running=false, last=0, sc=1, dpr=1, W=1100, H=0;
+    var ctx=cv.getContext('2d');
+    function fit(){var r=svg.getBoundingClientRect();dpr=window.devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.width=r.width+'px';cv.style.height=r.height+'px';sc=r.width/W*dpr;}
+    function mv(ev){var b=wrap.getBoundingClientRect();var x=ev.clientX-b.left+12,y=ev.clientY-b.top+12;if(x>b.width-340)x-=360;tip.style.left=x+'px';tip.style.top=y+'px';}
+    function showTip(ev,html){if(!html){tip.hidden=true;return;}tip.innerHTML=html;tip.hidden=false;mv(ev);}
+    function colOf(n){return S.cols[n.col];}
+    function layout(){
+      W=S.W||1100; var top=S.top||34, bottom=S.bottom||20; nodes={}; var colH=[];
+      S.cols.forEach(function(c,ci){ var ns=S.nodes.filter(function(n){return n.col===ci;}); var y=top, lastG=null;
+        if(c.kind==='bar'){ var total=ns.reduce(function(a,n){return a+(n.cnt||0);},0)||1, n=ns.length, minH=c.minH||11, gap=c.gap||3;
+          var avail=(S.H||900)-top-bottom-gap*(n-1), extra=Math.max(0,avail-minH*n);
+          ns.forEach(function(nd){ var h=minH+extra*(nd.cnt||0)/total; nodes[nd.id]={n:nd,x0:c.x[0],x1:c.x[1],y0:y,y1:y+h,cnt:nd.cnt||0,off0:0,off1:0}; y+=h+gap; });
+        } else { var h=c.h||40, gap=c.gap||10, gg=c.groupGap||18;
+          ns.forEach(function(nd){ if(nd.group!==undefined&&lastG!==null&&nd.group!==lastG) y+=gg; if(nd.group!==undefined) lastG=nd.group;
+            nodes[nd.id]={n:nd,x0:c.x[0],x1:c.x[1],y0:y,y1:y+h,cnt:nd.cnt||0,off0:0,off1:0}; y+=h+gap; }); }
+        colH.push(y+bottom); });
+      H=Math.max.apply(null,colH.concat([S.H||0]));
+      S.cols.forEach(function(c,ci){ if(c.kind==='bar'||c.center===false) return; var ns=S.nodes.filter(function(n){return n.col===ci;}); if(!ns.length) return; var y0=nodes[ns[0].id].y0, y1=nodes[ns[ns.length-1].id].y1; var d=(H-bottom-(y1-y0))/2-y0+top/2; if(d>0) ns.forEach(function(n){nodes[n.id].y0+=d;nodes[n.id].y1+=d;}); });
+    }
+    function litEdge(e){ if(e.lit===false) return false; if(e.cat&&catOff[e.cat]) return false;
+      if(sel){ if(S.isolate==='path') return !!e._path; return e.a===sel||e.b===sel; } return true; }
+    function markPath(){ edges.forEach(function(e){e._path=false;}); if(!sel||S.isolate!=='path') return;
+      var ok=function(e){return !(e.cat&&catOff[e.cat])&&e.lit!==false;};
+      var q=[sel], seen={}; seen[sel]=1; while(q.length){ var id=q.shift(); edges.forEach(function(e){ if(ok(e)&&e.a===id&&!e._path){ e._path=true; if(!seen[e.b]){seen[e.b]=1;q.push(e.b);} } }); }
+      q=[sel]; seen={}; seen[sel]=1; while(q.length){ var id2=q.shift(); edges.forEach(function(e){ if(ok(e)&&e.b===id2&&!e._path){ e._path=true; if(!seen[e.a]){seen[e.a]=1;q.push(e.a);} } }); } }
+    function render(){
+      layout(); edges=S.edges.slice(); markPath();
+      var h='';
+      S.cols.forEach(function(c){ if(!c.label) return; var left=c.labelSide==='left'; h+='<text class="fv-col" x="'+(left?c.x[1]:c.x[0])+'" y="'+((S.top||34)-16)+'" text-anchor="'+(left?'end':'start')+'">'+esc(c.label)+'</text>'; });
+      S.cols.forEach(function(c,ci){ var ns=S.nodes.filter(function(n){return n.col===ci;}); var lastG=null; ns.forEach(function(nd){ if(nd.group!==undefined&&nd.group!==lastG&&lastG!==null){ var p=nodes[nd.id]; h+='<text class="fv-grp" x="'+(c.labelSide==='left'?p.x1+8:p.x0)+'" y="'+(p.y0-6)+'">'+esc(nd.group)+'</text>'; } if(nd.group!==undefined) lastG=nd.group; }); });
+      edges.forEach(function(e){ var A=nodes[e.a], B=nodes[e.b]; if(!A||!B){ e._x0=null; return; } var ca=colOf(A.n), cb=colOf(B.n);
+        if(ca.kind==='bar'){ var hs=(A.y1-A.y0)*(e.w||0)/(A.cnt||1); e._ys=A.y0+A.off0+hs/2; e._hs=hs; A.off0+=hs; } else { e._ys=(A.y0+A.y1)/2; e._hs=null; }
+        if(cb.kind==='bar'){ var ht=(B.y1-B.y0)*(e.w||0)/(B.cnt||1); e._yt=B.y0+B.off1+ht/2; e._ht=ht; B.off1+=ht; } else { e._yt=(B.y0+B.y1)/2; e._ht=null; }
+        e._x0=A.x1+2; e._x1=B.x0-2;
+        e._w=e.width!=null?e.width:((e._hs!=null||e._ht!=null)?Math.max(.8,((e._hs!=null?e._hs:e._ht)+(e._ht!=null?e._ht:e._hs))/2):Math.max(1,Math.min(9,.45*(e.w||1)+.8))); });
+      var sorted=edges.slice().sort(function(a,b){ var la=litEdge(a)?1:0, lb=litEdge(b)?1:0; if(la!==lb) return la-lb; return ((b.rank||99)-(a.rank||99)); });
+      sorted.forEach(function(e){ if(e._x0==null) return; var cx=(e._x0+e._x1)/2, lit=litEdge(e); var A=nodes[e.a]; var op=e.opacity!=null?e.opacity:(colOf(A.n).kind==='bar'?.34:.5);
+        h+='<path class="fv-edge'+(e.dash?' dash':'')+(lit?'':' dim')+'" data-i="'+edges.indexOf(e)+'" d="M'+e._x0+' '+e._ys.toFixed(1)+' C'+cx+' '+e._ys.toFixed(1)+' '+cx+' '+e._yt.toFixed(1)+' '+e._x1+' '+e._yt.toFixed(1)+'" stroke="'+(e.color||'var(--rule)')+'" stroke-opacity="'+(lit?op:.05)+'" stroke-width="'+e._w.toFixed(2)+'"></path>'; });
+      var touched={}; edges.forEach(function(e){ if(e._x0!=null&&litEdge(e)){touched[e.a]=1;touched[e.b]=1;} });
+      var filtering=sel||Object.keys(catOff).some(function(k){return catOff[k];});
+      S.nodes.forEach(function(nd){ var p=nodes[nd.id], c=colOf(nd), card=c.kind!=='bar', dim=nd.dim||(filtering&&!touched[nd.id]&&nd.id!==sel);
+        h+='<g class="fv-node '+(card?'card':'bar')+(nd.id===sel?' on':'')+(dim?' dim':'')+'" data-id="'+esc(nd.id)+'">';
+        if(card){ h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'"'+(nd.color?' style="stroke:'+nd.color+'"':'')+'></rect>';
+          var tx=p.x0+10, my=(p.y0+p.y1)/2; if(nd.logo){ h+='<image href="'+nd.logo+'" x="'+(p.x0+9)+'" y="'+(my-11)+'" width="22" height="22"></image>'; tx=p.x0+38; }
+          if(nd.icon){ h+='<text x="'+(p.x0+10)+'" y="'+(my+4.5)+'" font-size="12" style="stroke:none">'+nd.icon+'</text>'; tx=p.x0+30; }
+          h+='<text x="'+tx+'" y="'+(nd.sub?my-3:my+4)+'">'+esc(nd.label)+'</text>'; if(nd.sub) h+='<text class="sm" x="'+tx+'" y="'+(my+12)+'">'+esc(nd.sub)+'</text>';
+          if(nd.best){ if(nd.bestLogo) h+='<image href="'+nd.bestLogo+'" x="'+(p.x1-8-(nd.bestW||60)-18)+'" y="'+(my-7)+'" width="14" height="14"></image>'; h+='<text class="best" x="'+(p.x1-8)+'" y="'+(my+4)+'" text-anchor="end"'+(nd.bestColor?' style="fill:'+nd.bestColor+'"':'')+'>'+esc(nd.best)+'</text>'; }
+        } else { h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'" fill="'+(nd.color||'var(--muted)')+'" opacity=".85"></rect>';
+          var side=c.labelSide||'right', lx=side==='left'?p.x0-7:p.x1+7;
+          h+='<text x="'+lx+'" y="'+((p.y0+p.y1)/2+4)+'" text-anchor="'+(side==='left'?'end':'start')+'">'+esc(nd.label)+(nd.cnt!=null?' <tspan class="sm">'+nd.cnt+'</tspan>':'')+'</text>'; }
+        h+='</g>'; });
+      svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML=h;
+      var byId={}; S.nodes.forEach(function(n){byId[n.id]=n;});
+      svg.querySelectorAll('.fv-node').forEach(function(g){ var id=g.getAttribute('data-id'), nd=byId[id];
+        g.addEventListener('click',function(){ if(S.isolate==='none') return; sel=(sel===id?null:id); render(); if(S.onSelect) S.onSelect(sel); });
+        g.addEventListener('mouseenter',function(ev){ if(nd&&nd.tip) showTip(ev,nd.tip); }); g.addEventListener('mousemove',mv); g.addEventListener('mouseleave',function(){tip.hidden=true;}); });
+      svg.querySelectorAll('.fv-edge').forEach(function(p){ var e=edges[+p.getAttribute('data-i')];
+        p.addEventListener('mouseenter',function(ev){ if(e.tip) showTip(ev,e.tip); }); p.addEventListener('mousemove',mv); p.addEventListener('mouseleave',function(){tip.hidden=true;}); });
+      note.innerHTML=typeof S.note==='function'?S.note({sel:sel,catOff:catOff,lit:edges.filter(litEdge)}):(S.note||'');
+      renderCtl(); setupParts(); fit(); requestAnimationFrame(fit);
+    }
+    function renderCtl(){ ctl.innerHTML=''; (S.controls||[]).forEach(function(c){
+      if(c.type==='legend'){ if(c.label){var lab=document.createElement('span'); lab.className='lab'; lab.textContent=c.label; ctl.appendChild(lab);}
+        (S.legend||[]).forEach(function(L){ var s=document.createElement('span'); s.className='cp'+(catOff[L.k]?' off':''); s.innerHTML='<i class="'+(L.dash?'d':'')+'" style="background:'+L.color+';color:'+L.color+'"></i>'+esc(L.label); s.addEventListener('click',function(){ catOff[L.k]=!catOff[L.k]; render(); }); ctl.appendChild(s); }); }
+      else if(c.type==='pills'){ if(c.label){var lab2=document.createElement('span'); lab2.className='lab'; lab2.textContent=c.label; ctl.appendChild(lab2);}
+        c.options.forEach(function(o){ var b=document.createElement('button'); b.className='pill'+(o.v===c.value?' on':''); b.textContent=o.label; b.addEventListener('click',function(){ c.value=o.v; if(c.onChange) c.onChange(o.v); }); ctl.appendChild(b); }); }
+      else if(c.type==='reset'){ var r=document.createElement('button'); r.className='pill'; r.style.marginLeft='auto'; r.textContent=c.label||'重置'; r.addEventListener('click',function(){ sel=null; catOff={}; if(c.onReset) c.onReset(); render(); }); ctl.appendChild(r); }
+      else if(c.type==='html'){ var d=document.createElement('span'); d.innerHTML=c.html; ctl.appendChild(d); } }); }
+    function setupParts(){ parts=[]; if(S.particles===false) return; svg.querySelectorAll('.fv-edge:not(.dim):not(.dash)').forEach(function(p){ var e=edges[+p.getAttribute('data-i')]; var n=Math.min(6,Math.max(1,Math.round((e.w||1)/(S.particleDiv||7)))); var col=getComputedStyle(p).stroke; for(var i=0;i<n;i++) parts.push({p:p,len:p.getTotalLength(),t:Math.random(),sp:0.00008+Math.random()*0.00005,col:col}); }); }
+    function frame(ts){ if(!running) return; var dt=Math.min(40,ts-(last||ts)); last=ts; ctx.clearRect(0,0,cv.width,cv.height);
+      parts.forEach(function(pt){ pt.t=(pt.t+pt.sp*dt)%1; ctx.fillStyle=pt.col; for(var k=0;k<4;k++){ var tt=pt.t-k*.012; if(tt<0) continue; var q=pt.p.getPointAtLength(tt*pt.len); ctx.globalAlpha=.9*(1-k*.22); ctx.beginPath(); ctx.arc(q.x*sc,q.y*sc,(2.6-k*.4)*dpr,0,Math.PI*2); ctx.fill(); } });
+      ctx.globalAlpha=1; requestAnimationFrame(frame); }
+    var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduce&&'IntersectionObserver' in window){ new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ if(!running){running=true;last=0;requestAnimationFrame(frame);} } else running=false; }); },{threshold:.05}).observe(wrap); }
+    window.addEventListener('resize',fit);
+    var api={update:function(sp){ S=sp; render(); return api; }, select:function(id){ sel=id; render(); }, state:function(){ return {sel:sel,catOff:catOff}; }, reset:function(){ sel=null; catOff={}; render(); }, el:root};
+    return api.update(spec);
+  }
+  window.FlowViz={version:"1.0.0", embed:embed};
+})();
+</script>
+<!-- /flowviz:runtime -->
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans SC',-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+  font-size:16.5px;line-height:1.92;-webkit-font-smoothing:antialiased;padding:36px 18px 60px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-family:Georgia,'Songti SC',serif;font-size:clamp(25px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.15}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{font-size:13px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em;margin:6px 0 18px}
+h2{font-family:Georgia,'Songti SC',serif;font-size:22px;font-weight:600;margin:38px 0 6px;scroll-margin-top:18px}
+h2 .zh{font-size:14px;color:var(--muted);font-weight:400;margin-left:10px}
+h3{font-size:16px;margin:22px 0 8px}
+.kicker{font-size:13px;color:var(--muted);margin:0 0 14px}
+.kicker b,.kicker strong{color:var(--ink)}
+#tocBtn{position:fixed;top:14px;left:14px;z-index:170;width:38px;height:38px;border-radius:999px;line-height:1;
+  border:1px solid var(--rule);background:var(--bg-card);color:var(--ink);font-size:15px;cursor:pointer}
+#darkBtn{position:fixed;top:14px;right:14px;z-index:170;width:38px;height:38px;border-radius:999px;line-height:1;
+  border:1px solid var(--rule);background:var(--bg-card);color:var(--ink);font-size:15px;cursor:pointer}
+.toc-sidebar{position:fixed;top:0;left:-236px;width:220px;height:100vh;background:var(--bg-card);border-right:1px solid var(--rule);
+  z-index:160;padding:22px 12px;transition:left .28s;overflow-y:auto}
+.toc-sidebar.open{left:0}
+.toc-brand{font-family:Georgia,serif;font-size:22px;font-weight:700;padding:0 10px}
+.toc-brand .dot{color:var(--accent)}
+.toc-zh{font-size:12px;color:var(--muted);padding:0 10px;margin-bottom:14px}
+.toc-item{display:block;padding:7px 10px;border-radius:7px;color:var(--ink-soft);text-decoration:none;font-size:13.5px;margin:2px 0}
+.toc-item:hover{background:var(--bg-deep);color:var(--accent)}
+.toc-item.active{background:var(--accent);color:#fff;font-weight:600}
+.toc-item .tn{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--muted-soft);margin-right:8px;letter-spacing:.05em}
+.toc-item.active .tn{color:rgba(255,255,255,.72)}
+.toc-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:155;opacity:0;pointer-events:none;transition:opacity .3s}
+.toc-backdrop.show{opacity:1;pointer-events:auto}
+@media(min-width:1200px){body{padding-left:236px}.toc-sidebar{left:0}#tocBtn{display:none}}
+/* ── 胶囊分段控件（2026-08-24 统一：母版＝房券去哪儿住.html·Klay 08-17 选定的那套）
+   原实现是「一颗一颗独立药丸」（各自带边框、gap 8px、选中填 accent）；
+   母版是「一条分段控件」：外层一个底槽，内层无边框，选中靠 bg-card 抬升。
+   只换样式不动 class 名与 DOM，JS 的 .on 切换逻辑原样可用。 ── */
+.pills{display:inline-flex;gap:0;flex-wrap:wrap;background:var(--bg-deep);
+  border:1px solid var(--rule);border-radius:10px;padding:3px;margin:14px 0 16px;
+  max-width:100%;overflow-x:auto;vertical-align:middle}
+.pill{font:inherit;font-size:14px;padding:7px 16px;border-radius:7px;cursor:pointer;
+  background:transparent;color:var(--ink-soft);border:none;transition:.14s;white-space:nowrap}
+.pill:hover{color:var(--ink)}
+.pill.on{background:var(--bg-card);color:var(--ink);font-weight:700;
+  box-shadow:0 1px 3px rgba(0,0,0,.13)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;background:var(--bg-card);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+th{background:var(--bg-deep);color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.05em;text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.ok{color:var(--moss);font-weight:600}
+.warn{color:var(--gold);font-weight:600}
+.chipset{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11.5px;color:var(--ink-soft);border:1px solid var(--rule);border-radius:6px;padding:1px 8px;white-space:nowrap;background:var(--bg)}
+img.lgo{width:18px;height:18px;border-radius:4px;background:#fff;padding:2px;vertical-align:-4px;margin-right:6px}
+.mk{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.08em;border:1.5px solid var(--ink-soft);color:var(--ink-soft);
+  border-radius:4px;padding:0 5px;margin-right:6px;vertical-align:1px;font-family:Georgia,serif}
+.callout{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0;font-size:14px}
+.callout b{color:var(--accent-deep)}
+.note{margin-top:30px;font-size:13px;color:var(--muted);border-left:3px solid var(--rule);padding-left:14px}
+.note li{margin:4px 0 4px 16px}
+.mxt td.mx{text-align:center;font-weight:700}
+.mxt th,.mxt td{border:1px solid var(--rule-soft)}
+.mxt .gb{border-left:2px solid var(--rule)}
+.mxt th[colspan]{text-align:center}
+.mxt .dim{color:var(--muted-soft)}
+.mxt th.bh{font-size:11px;letter-spacing:0}
+.mxt td.cityjump{cursor:pointer;font-weight:600;color:var(--accent);white-space:nowrap}
+.mxt td.cityjump:hover{text-decoration:underline}
+.citypanel{display:none}
+.citypanel.on{display:block}
+.bo{font-size:13px;color:var(--muted);margin:8px 0 0}
+.bo b{color:var(--gold)}
+.cityintro{font-size:13.5px;color:var(--ink-soft);margin:2px 0 10px}
+footer{margin-top:44px;font-size:12px;color:var(--muted-soft);border-top:1px solid var(--rule);padding-top:14px}
+
+/* 日/夜切换＝访客看板同款（2026-08-26 移植，源=访客数据/访客看板.html←klay-site theme-toggle）：
+   太阳/月亮图标 + 按下回弹 + 图标旋转 + 圆形揭示。图标显隐靠 html[data-theme] 精确匹配，
+   属性由 head 内联脚本保证始终显式写 light/dark。 */
+html[data-theme="light"] .icon-sun{display:none}
+html[data-theme="dark"] .icon-moon{display:none}
+#darkBtn{display:inline-flex;align-items:center;justify-content:center}
+#darkBtn svg{transition:transform .2s cubic-bezier(.16,1,.3,1)}
+#darkBtn.spin svg{animation:icon-swap .5s cubic-bezier(.16,1,.3,1)}
+#darkBtn:active{transform:scale(.94)}
+@keyframes icon-swap{from{transform:rotate(-120deg) scale(.5);opacity:.3}to{transform:rotate(0) scale(1);opacity:1}}
+/* 圆形揭示：关掉浏览器默认淡入，只留 clip-path 那个圆 */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:0}
+::view-transition-new(root){z-index:1}
+@media (prefers-reduced-motion:reduce){#darkBtn.spin svg{animation:none}}
+
+/* 夜晚星空＝访客看板同款（2026-08-26 移植，源=访客数据/访客看板.html←klay-site globals.css §16）：
+   只在夜间亮，错峰淡入+闪烁，铺顶部一带，滚动后整块淡出；纯装饰不挡点击。
+   与母版唯一差异：z-index:-1（母版 z:0 再抬 .wrap；本站六页容器各异，负 z 一条搞定，
+   星星画在 body 背景之上、所有内容之下，效果同款）。 */
+.starfield{position:fixed;left:0;right:0;top:0;height:340px;overflow:hidden;pointer-events:none;z-index:-1}
+.star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:0;
+box-shadow:0 0 3px 1px rgba(255,255,255,.45);transition:opacity .5s ease;
+animation:twinkle 3.2s ease-in-out infinite;animation-play-state:paused}
+html[data-theme="dark"] .star{opacity:.85;animation-play-state:running}
+html[data-scrolled] .starfield{opacity:0;transition:opacity .3s ease}
+.star:nth-child(1){top:22%;left:14%;transition-delay:0.05s;animation-delay:0s}
+.star:nth-child(2){top:62%;left:24%;transition-delay:0.18s;animation-delay:0.7s}
+.star:nth-child(3){top:30%;left:38%;transition-delay:0.11s;animation-delay:0.3s}
+.star:nth-child(4){top:70%;left:52%;transition-delay:0.3s;animation-delay:1.1s}
+.star:nth-child(5){top:18%;left:60%;transition-delay:0.22s;animation-delay:0.5s}
+.star:nth-child(6){top:55%;left:72%;transition-delay:0.4s;animation-delay:0.9s}
+.star:nth-child(7){top:26%;left:84%;transition-delay:0.15s;animation-delay:0.2s}
+.star:nth-child(8){top:74%;left:90%;transition-delay:0.34s;animation-delay:1.3s}
+.star:nth-child(9){top:44%;left:47%;transition-delay:0.26s;animation-delay:0.6s}
+.star:nth-child(10){top:58%;left:6%;transition-delay:0.08s;animation-delay:0.4s}
+.star:nth-child(11){top:16%;left:30%;transition-delay:0.37s;animation-delay:1s}
+.star:nth-child(12){top:66%;left:34%;transition-delay:0.13s;animation-delay:1.5s}
+.star:nth-child(13){top:34%;left:8%;transition-delay:0.44s;animation-delay:0.15s}
+.star:nth-child(14){top:78%;left:18%;transition-delay:0.2s;animation-delay:0.85s}
+.star:nth-child(15){top:40%;left:66%;transition-delay:0.47s;animation-delay:1.7s}
+.star:nth-child(16){top:12%;left:78%;transition-delay:0.09s;animation-delay:0.45s}
+.star:nth-child(17){top:64%;left:95%;transition-delay:0.28s;animation-delay:1.2s}
+.star:nth-child(18){top:36%;left:93%;transition-delay:0.5s;animation-delay:0.05s}
+@keyframes twinkle{0%,100%{transform:scale(1);box-shadow:0 0 3px 1px rgba(255,255,255,.4)}
+50%{transform:scale(1.6);box-shadow:0 0 6px 2px rgba(255,255,255,.75)}}
+@media (prefers-reduced-motion: reduce){html[data-theme="dark"] .star{animation:none;opacity:.7}}
+</style>
+<style>
+/* 区域航线页专用（三张共用，生成器唯一实现） */
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+td.num,th.num{text-align:right;font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.mini{font-size:11.5px;color:var(--muted);display:block;line-height:1.5}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:5px;padding:1px 7px;white-space:nowrap}
+.b-ok{background:var(--moss-soft);color:var(--moss);border:1px solid var(--moss)}
+.b-warn{background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold)}
+.b-err{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.b-neu{background:var(--bg-deep);color:var(--muted);border:1px solid var(--rule)}
+tr.gone td{opacity:.62}
+tr.gone td:first-child{opacity:1}
+.tblwrap{overflow-x:auto;margin:12px 0}
+table.wide{min-width:940px}
+.cn{font-weight:600;white-space:nowrap}
+ul.clean{list-style:none;margin:12px 0}
+ul.clean li{position:relative;padding-left:15px;margin:8px 0;font-size:14.5px;line-height:1.85}
+ul.clean li:before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--rule)}
+.callout.okcall{background:var(--moss-soft);border-left-color:var(--moss)}
+.callout.okcall b{color:var(--moss)}
+.callout.warncall{background:var(--gold-soft);border-left-color:var(--gold)}
+.callout.warncall b{color:var(--gold)}
+#flow{margin:14px 0 6px}
+/* 家族切换条（三家族互相倒流的第一层） */
+.fam{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 18px;font-size:13px}
+.fam a{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid var(--rule);
+  background:var(--bg-card);color:var(--ink-soft);text-decoration:none;transition:.14s}
+.fam a:hover{border-color:var(--accent);color:var(--accent)}
+.fam a.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.fam .sep{color:var(--muted-soft);margin:0 2px}
+.fam .idx{margin-left:auto;color:var(--muted);font-size:12px}
+.mirror{display:inline-block;margin:0 0 6px 2px;font-size:13px;color:var(--accent);text-decoration:none;border-bottom:1px dashed var(--accent)}
+.mirror:hover{border-bottom-style:solid}
+</style>
+<body>
+<div class="starfield" aria-hidden="true"><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span></div>
+<button id="tocBtn" title="目录">☰</button>
+<button id="darkBtn" title="暗/亮" aria-label="Toggle dark mode"><svg class="icon-sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg><svg class="icon-moon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M20.6 14.6A8.6 8.6 0 0 1 9.4 3.4 9 9 0 1 0 20.6 14.6z"/></svg></button>
+<aside class="toc-sidebar" id="toc">
+  <div class="toc-brand">Atlas<span class="dot">.</span></div>
+  <div class="toc-zh">航线图志</div>
+  <a class="toc-item" href="#s0"><span class="tn">0</span>世界流向总图</a>
+  <a class="toc-item" href="#s1"><span class="tn">I</span>三个出发地</a>
+</aside>
+<div class="toc-backdrop" id="tocBack"></div>
+
+<div class="wrap">
+<nav class="fam"><a href="中国出发/index.html">🇨🇳 中国出发</a><span class="sep">·</span><a href="美国出发/index.html">🇺🇸 美国出发</a><span class="sep">·</span><a href="欧洲出发/index.html">🇪🇺 欧洲出发</a></nav><h1>航线<em>图志</em></h1>
+<div class="sub">ROUTE ATLAS · 中国 · 美国 · 欧洲 出发 · 2026-09</div>
+<div class="kicker">按<b>出发地</b>分三个家族，同一批航线在不同家族里是<b>同一份数据、不同视角</b>：中欧和欧中共用一份数据，只换叙事与流向图默认方向。每页一张流向图 ＋ 逐线表 ＋ 政策与航权背景，来源分级，未核项单独列。</div>
+<style>
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin:14px 0 26px}
+.pcard{display:block;padding:16px 18px;border:1px solid var(--rule);border-radius:12px;background:var(--bg-card);text-decoration:none;color:var(--ink);transition:.14s}
+.pcard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.pc-t{font-family:Georgia,'Songti SC',serif;font-size:18px;font-weight:600;margin-bottom:6px}
+.pc-s{font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:8px}
+.pc-n{font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+.fcard{padding:18px 20px;border:1px solid var(--rule);border-radius:12px;background:var(--bg-card);margin:12px 0}
+.fcard h3{margin:0 0 6px;font-size:18px}
+.fcard .fc-n{font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-bottom:8px}
+</style>
+<h2 id="s0">世界流向总图<span class="zh">三个出发地 → 七个目的地区域</span></h2>
+<div class="kicker"><b>红＝中国出发，绿＝美国出发，灰＝欧洲出发。</b>线粗＝该页已核直飞班次合计，点节点只看它。欧洲出发目前是镜像数据，与对面那条同源。</div>
+<div id="flow"></div>
+<h2 id="s1">三个出发地<span class="zh">互相倒流</span></h2>
+<div class="fcard"><h3><a href="中国出发/index.html">🇨🇳 中国出发</a></h3><div class="fc-n">6 页 · 437 条线</div><div class="pgrid"><a class="pcard" href="中国出发/中非航线.html"><div class="pc-t">中非航线 · 八成靠中转</div><div class="pc-s">这条线的第一性原理：中非客流八成走中转，直飞只占 18%，亚的斯亚贝巴一家占中非直飞座位的 35%。</div><div class="pc-n">24 条线 · 直飞 18</div></a><a class="pcard" href="中国出发/中亚航线.html"><div class="pc-t">中亚航线 · 九地，四种处境</div><div class="pc-s">九个目的地，四种处境：韩国成了中国第一大国际市场，中日被政治砍了一半，海湾被战争打断，东南亚按签证分化。</div><div class="pc-n">183 条线 · 直飞 167</div></a><a class="pcard" href="中国出发/中加航线.html"><div class="pc-t">中加航线 · 解冻后的回升</div><div class="pc-s">这条线的故事是政治：2018 年孟晚舟事件后加航全停、2022 年双方互限每周 6 班，2024 年 10 月撤令、2026 年 1 月卡尼访华，现在加航停飞六年后复飞多伦多、明年新开广州。</div><div class="pc-n">18 条线 · 直飞 15</div></a><a class="pcard" href="中国出发/中欧航线.html"><div class="pc-t">中欧航线 · 谁在飞，谁撤了</div><div class="pc-s">这一页只回答两件事：现在有哪些直飞，以及为什么欧洲航司越来越少。</div><div class="pc-n">131 条线 · 直飞 122</div></a><a class="pcard" href="中国出发/中澳新航线.html"><div class="pc-t">中澳新航线 · 中方独占，冬夏两个世界</div><div class="pc-s">这条线两个特征：澳航 2024 年 7 月退出大陆后，中澳直飞由中方 11 家航司独占，新西兰方向只剩新西兰航空一家非中方；季节性极强，12 到 2 月南半球夏季是旺季、几乎所有加班都落在那两个月，6 到 9 月是谷底、南航把夏季增班全抹了。</div><div class="pc-n">43 条线 · 直飞 40</div></a><a class="pcard" href="中国出发/中美航线.html"><div class="pc-t">中美航线 · 50 对 50，用满了</div><div class="pc-s">这条线的第一性原理是配额：中美双边各 50 班/周硬顶，2026-10-06 达美加班后双方都用满，再想加线只能等新的双边协议。</div><div class="pc-n">38 条线 · 直飞 33</div></a></div></div>
+<div class="fcard"><h3><a href="美国出发/index.html">🇺🇸 美国出发</a></h3><div class="fc-n">6 页 · 577 条线</div><div class="pgrid"><a class="pcard" href="美国出发/美亚航线.html"><div class="pc-t">美亚航线 · 港台中转口，与东京首尔新加坡</div><div class="pc-s">给在美国的人看：回国走香港还是台北，以及去东京、首尔、新加坡、马尼拉、印度各有谁飞。</div><div class="pc-n">89 条线 · 直飞 78</div></a><a class="pcard" href="美国出发/美中航线.html"><div class="pc-t">美中航线 · 从美国哪儿飞回去</div><div class="pc-s">给在美国的人看的版本：你在哪个城市，能直飞回哪儿。</div><div class="pc-n">38 条线 · 直飞 33　·　镜像页</div></a><a class="pcard" href="美国出发/美欧航线.html"><div class="pc-t">美欧航线 · 开放天空，没有配额</div><div class="pc-s">跨大西洋是世界上最密的长途市场：49 家航司、三大合资体拿走八成五以上运力。</div><div class="pc-n">194 条线 · 直飞 175</div></a><a class="pcard" href="美国出发/美墨加勒比航线.html"><div class="pc-t">美墨加勒比航线 · 美国人的近海</div><div class="pc-s">美墨是全球最大的国际航空市场之一（2026 夏约 2,550 万双向座位），加勒比是美国人的度假后院。</div><div class="pc-n">138 条线 · 直飞 124</div></a><a class="pcard" href="美国出发/美澳新航线.html"><div class="pc-t">美澳新航线 · 跨太平洋南线</div><div class="pc-s">洛杉矶–悉尼一周 32 班，是南太平洋唯一的大动脉；其余全靠洛杉矶、旧金山、达拉斯、休斯敦四个口。</div><div class="pc-n">37 条线 · 直飞 33</div></a><a class="pcard" href="美国出发/美南美航线.html"><div class="pc-t">美南美航线 · 迈阿密是南美的门</div><div class="pc-s">这一页有两个读者：在美国的人，和从中国飞南美要在美国转机的人。</div><div class="pc-n">81 条线 · 直飞 74</div></a></div></div>
+<div class="fcard"><h3><a href="欧洲出发/index.html">🇪🇺 欧洲出发</a></h3><div class="fc-n">4 页 · 508 条线</div><div class="pgrid"><a class="pcard" href="欧洲出发/欧非航线.html"><div class="pc-t">欧非航线 · 旧线、枢纽与红海</div><div class="pc-s">欧洲人去非洲有四种飞法：殖民旧线（法航/英航/荷航直飞约堡、内罗毕、毛里求斯）、非洲枢纽（埃塞航从 5 个欧洲门户飞亚的斯再散）、廉价短途（easyJet 马拉喀什设基地、红海七家包机）和海湾中转。</div><div class="pc-n">58 条线 · 直飞 55</div></a><a class="pcard" href="欧洲出发/欧亚航线.html"><div class="pc-t">欧亚航线 · 海湾之年</div><div class="pc-s">欧洲人第一大洲际度假地是泰国，增速最快的是日本，而欧亚线一半以上的客流要经海湾或伊斯坦布尔转。</div><div class="pc-n">125 条线 · 直飞 123</div></a><a class="pcard" href="欧洲出发/欧中航线.html"><div class="pc-t">欧中航线 · 从欧洲哪儿飞中国</div><div class="pc-s">给在欧洲的人看的版本：你在哪个城市，能直飞中国哪儿，谁在飞。</div><div class="pc-n">131 条线 · 直飞 122　·　镜像页</div></a><a class="pcard" href="欧洲出发/欧美航线.html"><div class="pc-t">欧美航线 · 从欧洲哪儿飞美国</div><div class="pc-s">给在欧洲的人看的版本：你在哪个城市，能直飞美国哪儿，谁在飞。</div><div class="pc-n">194 条线 · 直飞 175　·　镜像页</div></a></div></div>
+<script>(function(){var root=document.getElementById('flow');if(!root||!window.FlowViz)return;var S={"id": "wf", "W": 1100, "top": 44, "bottom": 20, "isolate": "touch", "particleDiv": 7, "cols": [{"label": "出发", "x": [40, 244], "kind": "card", "h": 40, "gap": 6, "groupGap": 16}, {"label": "目的地（按班次排）", "x": [866, 1064], "kind": "card", "h": 36, "gap": 4, "groupGap": 16}], "legend": [{"k": "中国出发", "label": "中国出发", "color": "var(--accent)"}, {"k": "美国出发", "label": "美国出发", "color": "var(--teal,#00A86B)"}, {"k": "欧洲出发", "label": "欧洲出发", "color": "var(--ink-soft,#5B5347)"}], "controls": [{"type": "legend", "label": "出发家族"}, {"type": "reset"}], "nodes": [{"id": "o:美国", "col": 0, "label": "🇺🇸 美国", "sub": "5107 班/周", "group": "— 出发 —"}, {"id": "o:中国", "col": 0, "label": "🇨🇳 中国", "sub": "4379 班/周", "group": "— 出发 —"}, {"id": "o:欧洲", "col": 0, "label": "🇪🇺 欧洲", "sub": "3445 班/周", "group": "— 出发 —"}, {"id": "d:亚洲", "col": 1, "label": "🌏 亚洲", "sub": "4813 班/周", "group": "— 目的地 —"}, {"id": "d:墨西哥·加勒比", "col": 1, "label": "🇲🇽 墨西哥·加勒比", "sub": "2112 班/周", "group": "— 目的地 —"}, {"id": "d:欧洲", "col": 1, "label": "🇪🇺 欧洲", "sub": "1937 班/周", "group": "— 目的地 —"}, {"id": "d:美国", "col": 1, "label": "🇺🇸 美国", "sub": "1281 班/周", "group": "— 目的地 —"}, {"id": "d:中国", "col": 1, "label": "🇨🇳 中国", "sub": "1018 班/周", "group": "— 目的地 —"}, {"id": "d:南美", "col": 1, "label": "🌎 南美", "sub": "816 班/周", "group": "— 目的地 —"}, {"id": "d:非洲", "col": 1, "label": "🌍 非洲", "sub": "521 班/周", "group": "— 目的地 —"}, {"id": "d:澳新", "col": 1, "label": "🇦🇺 澳新", "sub": "381 班/周", "group": "— 目的地 —"}, {"id": "d:加拿大", "col": 1, "label": "🇨🇦 加拿大", "sub": "52 班/周", "group": "— 目的地 —"}], "edges": [{"a": "o:中国", "b": "d:非洲", "w": 0.85, "width": 1.7083333333333335, "cat": "中国出发", "color": "var(--accent)", "opacity": 0.55, "tip": "<b>中国 → 非洲</b><br>中非航线 · 八成靠中转<br>直飞 18 条 · 合计 85 班/周（每方向）", "href": "中国出发/中非航线.html"}, {"a": "o:中国", "b": "d:亚洲", "w": 30.29, "width": 10, "cat": "中国出发", "color": "var(--accent)", "opacity": 0.55, "tip": "<b>中国 → 亚洲</b><br>中亚航线 · 九地，四种处境<br>直飞 167 条 · 合计 3029 班/周（每方向）", "href": "中国出发/中亚航线.html"}, {"a": "o:中国", "b": "d:加拿大", "w": 0.6, "width": 1.4333333333333333, "cat": "中国出发", "color": "var(--accent)", "opacity": 0.55, "tip": "<b>中国 → 加拿大</b><br>中加航线 · 解冻后的回升<br>直飞 15 条 · 合计 52 班/周（每方向）", "href": "中国出发/中加航线.html"}, {"a": "o:欧洲", "b": "d:非洲", "w": 4.36, "width": 4.633333333333333, "cat": "欧洲出发", "color": "var(--ink-soft,#5B5347)", "opacity": 0.55, "tip": "<b>欧洲 → 非洲</b><br>欧非航线 · 旧线、枢纽与红海<br>直飞 55 条 · 合计 436 班/周（每方向）", "href": "欧洲出发/欧非航线.html"}, {"a": "o:欧洲", "b": "d:亚洲", "w": 10.72, "width": 9.933333333333334, "cat": "欧洲出发", "color": "var(--ink-soft,#5B5347)", "opacity": 0.55, "tip": "<b>欧洲 → 亚洲</b><br>欧亚航线 · 海湾之年<br>直飞 123 条 · 合计 1072 班/周（每方向）", "href": "欧洲出发/欧亚航线.html"}, {"a": "o:欧洲", "b": "d:中国", "w": 8.37, "width": 7.975, "cat": "欧洲出发", "color": "var(--ink-soft,#5B5347)", "opacity": 0.55, "tip": "<b>欧洲 → 中国</b><br>欧中航线 · 从欧洲哪儿飞中国<br>直飞 122 条 · 合计 837 班/周（每方向）<br>镜像页，数据同源", "href": "欧洲出发/欧中航线.html"}, {"a": "o:欧洲", "b": "d:美国", "w": 11.0, "width": 10, "cat": "欧洲出发", "color": "var(--ink-soft,#5B5347)", "opacity": 0.55, "tip": "<b>欧洲 → 美国</b><br>欧美航线 · 从欧洲哪儿飞美国<br>直飞 175 条 · 合计 1100 班/周（每方向）<br>镜像页，数据同源", "href": "欧洲出发/欧美航线.html"}, {"a": "o:中国", "b": "d:欧洲", "w": 8.37, "width": 7.975, "cat": "中国出发", "color": "var(--accent)", "opacity": 0.55, "tip": "<b>中国 → 欧洲</b><br>中欧航线 · 谁在飞，谁撤了<br>直飞 122 条 · 合计 837 班/周（每方向）", "href": "中国出发/中欧航线.html"}, {"a": "o:中国", "b": "d:澳新", "w": 1.95, "width": 2.625, "cat": "中国出发", "color": "var(--accent)", "opacity": 0.55, "tip": "<b>中国 → 澳新</b><br>中澳新航线 · 中方独占，冬夏两个世界<br>直飞 40 条 · 合计 195 班/周（每方向）", "href": "中国出发/中澳新航线.html"}, {"a": "o:美国", "b": "d:亚洲", "w": 7.12, "width": 6.933333333333334, "cat": "美国出发", "color": "var(--teal,#00A86B)", "opacity": 0.55, "tip": "<b>美国 → 亚洲</b><br>美亚航线 · 港台中转口，与东京首尔新加坡<br>直飞 78 条 · 合计 712 班/周（每方向）", "href": "美国出发/美亚航线.html"}, {"a": "o:美国", "b": "d:中国", "w": 1.81, "width": 2.5083333333333333, "cat": "美国出发", "color": "var(--teal,#00A86B)", "opacity": 0.55, "tip": "<b>美国 → 中国</b><br>美中航线 · 从美国哪儿飞回去<br>直飞 33 条 · 合计 181 班/周（每方向）<br>镜像页，数据同源", "href": "美国出发/美中航线.html"}, {"a": "o:美国", "b": "d:欧洲", "w": 11.0, "width": 10, "cat": "美国出发", "color": "var(--teal,#00A86B)", "opacity": 0.55, "tip": "<b>美国 → 欧洲</b><br>美欧航线 · 开放天空，没有配额<br>直飞 175 条 · 合计 1100 班/周（每方向）", "href": "美国出发/美欧航线.html"}, {"a": "o:美国", "b": "d:墨西哥·加勒比", "w": 21.12, "width": 10, "cat": "美国出发", "color": "var(--teal,#00A86B)", "opacity": 0.55, "tip": "<b>美国 → 墨西哥·加勒比</b><br>美墨加勒比航线 · 美国人的近海<br>直飞 124 条 · 合计 2112 班/周（每方向）", "href": "美国出发/美墨加勒比航线.html"}, {"a": "o:美国", "b": "d:澳新", "w": 1.86, "width": 2.55, "cat": "美国出发", "color": "var(--teal,#00A86B)", "opacity": 0.55, "tip": "<b>美国 → 澳新</b><br>美澳新航线 · 跨太平洋南线<br>直飞 33 条 · 合计 186 班/周（每方向）", "href": "美国出发/美澳新航线.html"}, {"a": "o:美国", "b": "d:南美", "w": 8.16, "width": 7.8, "cat": "美国出发", "color": "var(--teal,#00A86B)", "opacity": 0.55, "tip": "<b>美国 → 南美</b><br>美南美航线 · 迈阿密是南美的门<br>直飞 74 条 · 合计 816 班/周（每方向）", "href": "美国出发/美南美航线.html"}, {"a": "o:中国", "b": "d:美国", "w": 1.81, "width": 2.5083333333333333, "cat": "中国出发", "color": "var(--accent)", "opacity": 0.55, "tip": "<b>中国 → 美国</b><br>中美航线 · 50 对 50，用满了<br>直飞 33 条 · 合计 181 班/周（每方向）", "href": "中国出发/中美航线.html"}]};S.note=function(st){return '亮着 <b>'+st.lit.length+'</b> 条走廊。<b>线粗＝该页直飞班次合计</b>（每方向/周，只算已核的数）。点节点只看它，具体页在下面的卡片。渲染＝FlowViz v'+FlowViz.version+'。';};S.edges.forEach(function(e){delete e.href;});FlowViz.embed(root,S);})();</script>
+<footer>中国出发 · 美国出发 · 欧洲出发 三家族同一设计系统 · 班次按每方向每周 · 逐线票价一律未核 · 换季重核</footer>
+</div>
+
+<script>
+var d=document.documentElement;
+try{var s=localStorage.getItem('fm-theme');if(s)d.setAttribute('data-theme',s);}catch(e){}
+/* 切换＝看板同款（源=访客看板.html←klay-site theme-toggle.js）：旋转+圆形揭示；钥匙仍是 fm-theme */
+(function(){var btn=document.getElementById('darkBtn');
+function set(t){d.setAttribute('data-theme',t);try{localStorage.setItem('fm-theme',t);}catch(e){}}
+btn.addEventListener('click',function(){
+  var next=d.getAttribute('data-theme')==='dark'?'light':'dark';
+  btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spin');
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce||typeof document.startViewTransition!=='function'){set(next);return;}
+  var r=btn.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+  var end=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+  document.startViewTransition(function(){set(next);}).ready.then(function(){
+    d.animate({clipPath:['circle(0px at '+x+'px '+y+'px)','circle('+end+'px at '+x+'px '+y+'px)']},
+      {duration:500,easing:'cubic-bezier(0.16, 1, 0.3, 1)',pseudoElement:'::view-transition-new(root)'});
+  }).catch(function(){});
+});})();
+/* 目录 */
+(function(){
+  var toc=document.getElementById('toc'),bk=document.getElementById('tocBack'),bt=document.getElementById('tocBtn');
+  var items=[].slice.call(toc.querySelectorAll('.toc-item'));
+  function close(){toc.classList.remove('open');bk.classList.remove('show');}
+  bt.addEventListener('click',function(){toc.classList.toggle('open');bk.classList.toggle('show');});
+  bk.addEventListener('click',close);
+  items.forEach(function(a){a.addEventListener('click',close);});
+  var hs=[].slice.call(document.querySelectorAll('[id^="s"]')).filter(function(e){return /^s\d$/.test(e.id);});
+  function spy(){
+    var cur=hs.length?hs[0].id:'';
+    hs.forEach(function(h){ if(h.getBoundingClientRect().top<130) cur=h.id; });
+    items.forEach(function(a){ a.classList.toggle('active',a.getAttribute('href')==='#'+cur); });
+  }
+  window.addEventListener('scroll',spy,{passive:true}); spy();
+})();
+
+</script>
+<script>/* 星空滚动淡出：看板同款 data-scrolled 开关 */
+addEventListener("scroll",function(){
+  if(scrollY>40){document.documentElement.setAttribute("data-scrolled","");}
+  else{document.documentElement.removeAttribute("data-scrolled");}
+},{passive:true});</script>
+</body>
+</html>
