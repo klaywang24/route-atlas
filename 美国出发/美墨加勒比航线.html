@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美墨加勒比航线 · 美国人的近海</title>
+<!-- THEME:START --><style id="fm-theme">
+/* 五件套共用的调色板。唯一实现，别在各文件里再写一份 :root。
+   改这里之后跑一次： python3 build_theme.py
+   （--check 只读比对，已挂 pre-commit）
+
+   为什么要有它：抽取之前这套色散在 5 份 HTML 里、三种不同形状（20/15/16 个变量），
+   而且已经漂了——万豪选择器与航司选择器的 accent-bg/gold-soft/teal-soft 三个
+   透明度值与另外两份不一致（.04 vs .05、.12 vs .14、.10 vs .12）。没人会发现。
+
+   深色三条规则的分工：
+     :root                                        亮色，基准
+     @media(prefers-color-scheme) :not([light])   跟随系统
+     :root[data-theme="dark"]                     手动切换，优先级最高
+   五份 HTML 都有手动开关（localStorage fm-theme，2026-08-17 起统一），设了值就走第三条；
+   没设值时跟随系统。同一把钥匙，任一页切换、五页同步。 */
+
+:root{
+ --bg:#F1ECDF;--bg-card:#EBE5D6;--bg-card-hover:#E5DECC;--bg-deep:#E0D8C2;
+ --ink:#1A1410;--ink-soft:#3D352D;--muted:#6B5D4F;--muted-soft:#9B8E7C;
+ --accent:#FF2400;--accent-deep:#CC1D00;--accent-soft:rgba(255,36,0,.08);--accent-bg:rgba(255,36,0,.04);
+ --gold:#B8893E;--gold-soft:rgba(184,137,62,.12);
+ --teal:#00A86B;--teal-soft:rgba(0,168,107,.10);
+ --moss:#00A86B;--moss-soft:rgba(0,168,107,.10);
+ --rule:#C8BFA8;--rule-soft:#D8D0BA;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}}
+:root[data-theme="dark"]{
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}
+</style><!-- THEME:END -->
+
+<script>/* 主题先定死 light/dark（看板同款：图标显隐靠 html[data-theme] 精确匹配，属性必须始终显式；也防 FOUC）。钥匙仍是 fm-theme。 */
+(function(){var d=document.documentElement,s=null;try{s=localStorage.getItem("fm-theme");}catch(e){}
+d.setAttribute("data-theme",s||((window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"));})();</script>
+<!-- flowviz:runtime v1.0.0 -->
+<style id="fv-css">
+.fv{position:relative}
+.fv .fv-wrap{position:relative;background:var(--bg-card,#f5f2ea);border:1px solid var(--rule,#c8bfa8);border-radius:10px;overflow:hidden}
+.fv svg{display:block;width:100%;height:auto}
+.fv canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.fv .fv-col{fill:var(--muted-soft,#9b8e7c);font-size:10px;letter-spacing:.14em;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-grp{fill:var(--muted-soft,#9b8e7c);font-size:10px;letter-spacing:.12em;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-edge{fill:none;stroke-linecap:butt;transition:stroke-opacity .2s;cursor:pointer}
+.fv .fv-edge.dash{stroke-dasharray:5 5}
+.fv .fv-edge.dim{stroke-opacity:.05!important}
+.fv .fv-node rect{cursor:pointer}
+.fv .fv-node.card rect{fill:var(--bg,#f1ecdf);stroke:var(--rule,#c8bfa8);rx:6}
+.fv .fv-node.bar rect{stroke:none}
+.fv .fv-node text{fill:var(--ink,#1a1410);font-size:11.5px;font-family:'Noto Sans SC','IBM Plex Sans',sans-serif;pointer-events:none;paint-order:stroke;stroke:var(--bg-card,#f5f2ea);stroke-width:3px;stroke-linejoin:round}
+.fv .fv-node.card text{stroke:none;font-weight:600;font-size:12px}
+.fv .fv-node text.sm{fill:var(--muted,#6b5d4f);font-size:10px;font-weight:400;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-node text.best{font-weight:700}
+.fv .fv-node.on rect{stroke:var(--accent,#a0392f);stroke-width:1.6}
+.fv .fv-node.dim rect,.fv .fv-node.dim text,.fv .fv-node.dim image{opacity:.28}
+.fv .fv-tip{position:absolute;pointer-events:none;background:var(--ink,#1a1410);color:var(--bg,#f1ecdf);font-size:12px;line-height:1.55;padding:7px 10px;border-radius:6px;max-width:330px;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:5}
+.fv .fv-tip b{display:block;font-size:12.5px;margin-bottom:2px}
+.fv .fv-ctl{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 8px;font-size:12px}
+.fv .fv-ctl .lab{color:var(--muted,#6b5d4f);margin-right:4px}
+.fv .fv-ctl .cp{display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:2px 9px;border:1px solid var(--rule,#c8bfa8);border-radius:999px;color:var(--ink-soft,#3d352d);background:var(--bg-card,#f5f2ea)}
+.fv .fv-ctl .cp.off{opacity:.32}
+.fv .fv-ctl .cp i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.fv .fv-ctl .cp i.d{background:repeating-linear-gradient(90deg,currentColor 0 3px,transparent 3px 6px)!important}
+.fv .fv-note{font-size:12.5px;color:var(--muted,#6b5d4f);line-height:1.7;margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){.fv canvas{display:none}}
+</style>
+<script id="fv-runtime" data-v="1.0.0">
+/* FlowViz embed runtime v1.0.0 —— 唯一实现，由 ~/.claude/skills/flow-viz/flowviz.py 注入，别手改（tools/inject_flowviz.py --check 会报） */
+(function(){
+  if(window.FlowViz && window.FlowViz.version==="1.0.0") return;
+  function el(t,a,p){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+  function embed(root, spec){
+    root.classList.add('fv'); root.innerHTML='';
+    var ctl=document.createElement('div'); ctl.className='fv-ctl'; root.appendChild(ctl);
+    var wrap=document.createElement('div'); wrap.className='fv-wrap'; root.appendChild(wrap);
+    var svg=el('svg',{xmlns:'http://www.w3.org/2000/svg'},wrap); var cv=document.createElement('canvas'); wrap.appendChild(cv);
+    var tip=document.createElement('div'); tip.className='fv-tip'; tip.hidden=true; wrap.appendChild(tip);
+    var note=document.createElement('p'); note.className='fv-note'; root.appendChild(note);
+    var S=null, nodes={}, edges=[], sel=null, catOff={}, parts=[], running=false, last=0, sc=1, dpr=1, W=1100, H=0;
+    var ctx=cv.getContext('2d');
+    function fit(){var r=svg.getBoundingClientRect();dpr=window.devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.width=r.width+'px';cv.style.height=r.height+'px';sc=r.width/W*dpr;}
+    function mv(ev){var b=wrap.getBoundingClientRect();var x=ev.clientX-b.left+12,y=ev.clientY-b.top+12;if(x>b.width-340)x-=360;tip.style.left=x+'px';tip.style.top=y+'px';}
+    function showTip(ev,html){if(!html){tip.hidden=true;return;}tip.innerHTML=html;tip.hidden=false;mv(ev);}
+    function colOf(n){return S.cols[n.col];}
+    function layout(){
+      W=S.W||1100; var top=S.top||34, bottom=S.bottom||20; nodes={}; var colH=[];
+      S.cols.forEach(function(c,ci){ var ns=S.nodes.filter(function(n){return n.col===ci;}); var y=top, lastG=null;
+        if(c.kind==='bar'){ var total=ns.reduce(function(a,n){return a+(n.cnt||0);},0)||1, n=ns.length, minH=c.minH||11, gap=c.gap||3;
+          var avail=(S.H||900)-top-bottom-gap*(n-1), extra=Math.max(0,avail-minH*n);
+          ns.forEach(function(nd){ var h=minH+extra*(nd.cnt||0)/total; nodes[nd.id]={n:nd,x0:c.x[0],x1:c.x[1],y0:y,y1:y+h,cnt:nd.cnt||0,off0:0,off1:0}; y+=h+gap; });
+        } else { var h=c.h||40, gap=c.gap||10, gg=c.groupGap||18;
+          ns.forEach(function(nd){ if(nd.group!==undefined&&lastG!==null&&nd.group!==lastG) y+=gg; if(nd.group!==undefined) lastG=nd.group;
+            nodes[nd.id]={n:nd,x0:c.x[0],x1:c.x[1],y0:y,y1:y+h,cnt:nd.cnt||0,off0:0,off1:0}; y+=h+gap; }); }
+        colH.push(y+bottom); });
+      H=Math.max.apply(null,colH.concat([S.H||0]));
+      S.cols.forEach(function(c,ci){ if(c.kind==='bar'||c.center===false) return; var ns=S.nodes.filter(function(n){return n.col===ci;}); if(!ns.length) return; var y0=nodes[ns[0].id].y0, y1=nodes[ns[ns.length-1].id].y1; var d=(H-bottom-(y1-y0))/2-y0+top/2; if(d>0) ns.forEach(function(n){nodes[n.id].y0+=d;nodes[n.id].y1+=d;}); });
+    }
+    function litEdge(e){ if(e.lit===false) return false; if(e.cat&&catOff[e.cat]) return false;
+      if(sel){ if(S.isolate==='path') return !!e._path; return e.a===sel||e.b===sel; } return true; }
+    function markPath(){ edges.forEach(function(e){e._path=false;}); if(!sel||S.isolate!=='path') return;
+      var ok=function(e){return !(e.cat&&catOff[e.cat])&&e.lit!==false;};
+      var q=[sel], seen={}; seen[sel]=1; while(q.length){ var id=q.shift(); edges.forEach(function(e){ if(ok(e)&&e.a===id&&!e._path){ e._path=true; if(!seen[e.b]){seen[e.b]=1;q.push(e.b);} } }); }
+      q=[sel]; seen={}; seen[sel]=1; while(q.length){ var id2=q.shift(); edges.forEach(function(e){ if(ok(e)&&e.b===id2&&!e._path){ e._path=true; if(!seen[e.a]){seen[e.a]=1;q.push(e.a);} } }); } }
+    function render(){
+      layout(); edges=S.edges.slice(); markPath();
+      var h='';
+      S.cols.forEach(function(c){ if(!c.label) return; var left=c.labelSide==='left'; h+='<text class="fv-col" x="'+(left?c.x[1]:c.x[0])+'" y="'+((S.top||34)-16)+'" text-anchor="'+(left?'end':'start')+'">'+esc(c.label)+'</text>'; });
+      S.cols.forEach(function(c,ci){ var ns=S.nodes.filter(function(n){return n.col===ci;}); var lastG=null; ns.forEach(function(nd){ if(nd.group!==undefined&&nd.group!==lastG&&lastG!==null){ var p=nodes[nd.id]; h+='<text class="fv-grp" x="'+(c.labelSide==='left'?p.x1+8:p.x0)+'" y="'+(p.y0-6)+'">'+esc(nd.group)+'</text>'; } if(nd.group!==undefined) lastG=nd.group; }); });
+      edges.forEach(function(e){ var A=nodes[e.a], B=nodes[e.b]; if(!A||!B){ e._x0=null; return; } var ca=colOf(A.n), cb=colOf(B.n);
+        if(ca.kind==='bar'){ var hs=(A.y1-A.y0)*(e.w||0)/(A.cnt||1); e._ys=A.y0+A.off0+hs/2; e._hs=hs; A.off0+=hs; } else { e._ys=(A.y0+A.y1)/2; e._hs=null; }
+        if(cb.kind==='bar'){ var ht=(B.y1-B.y0)*(e.w||0)/(B.cnt||1); e._yt=B.y0+B.off1+ht/2; e._ht=ht; B.off1+=ht; } else { e._yt=(B.y0+B.y1)/2; e._ht=null; }
+        e._x0=A.x1+2; e._x1=B.x0-2;
+        e._w=e.width!=null?e.width:((e._hs!=null||e._ht!=null)?Math.max(.8,((e._hs!=null?e._hs:e._ht)+(e._ht!=null?e._ht:e._hs))/2):Math.max(1,Math.min(9,.45*(e.w||1)+.8))); });
+      var sorted=edges.slice().sort(function(a,b){ var la=litEdge(a)?1:0, lb=litEdge(b)?1:0; if(la!==lb) return la-lb; return ((b.rank||99)-(a.rank||99)); });
+      sorted.forEach(function(e){ if(e._x0==null) return; var cx=(e._x0+e._x1)/2, lit=litEdge(e); var A=nodes[e.a]; var op=e.opacity!=null?e.opacity:(colOf(A.n).kind==='bar'?.34:.5);
+        h+='<path class="fv-edge'+(e.dash?' dash':'')+(lit?'':' dim')+'" data-i="'+edges.indexOf(e)+'" d="M'+e._x0+' '+e._ys.toFixed(1)+' C'+cx+' '+e._ys.toFixed(1)+' '+cx+' '+e._yt.toFixed(1)+' '+e._x1+' '+e._yt.toFixed(1)+'" stroke="'+(e.color||'var(--rule)')+'" stroke-opacity="'+(lit?op:.05)+'" stroke-width="'+e._w.toFixed(2)+'"></path>'; });
+      var touched={}; edges.forEach(function(e){ if(e._x0!=null&&litEdge(e)){touched[e.a]=1;touched[e.b]=1;} });
+      var filtering=sel||Object.keys(catOff).some(function(k){return catOff[k];});
+      S.nodes.forEach(function(nd){ var p=nodes[nd.id], c=colOf(nd), card=c.kind!=='bar', dim=nd.dim||(filtering&&!touched[nd.id]&&nd.id!==sel);
+        h+='<g class="fv-node '+(card?'card':'bar')+(nd.id===sel?' on':'')+(dim?' dim':'')+'" data-id="'+esc(nd.id)+'">';
+        if(card){ h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'"'+(nd.color?' style="stroke:'+nd.color+'"':'')+'></rect>';
+          var tx=p.x0+10, my=(p.y0+p.y1)/2; if(nd.logo){ h+='<image href="'+nd.logo+'" x="'+(p.x0+9)+'" y="'+(my-11)+'" width="22" height="22"></image>'; tx=p.x0+38; }
+          if(nd.icon){ h+='<text x="'+(p.x0+10)+'" y="'+(my+4.5)+'" font-size="12" style="stroke:none">'+nd.icon+'</text>'; tx=p.x0+30; }
+          h+='<text x="'+tx+'" y="'+(nd.sub?my-3:my+4)+'">'+esc(nd.label)+'</text>'; if(nd.sub) h+='<text class="sm" x="'+tx+'" y="'+(my+12)+'">'+esc(nd.sub)+'</text>';
+          if(nd.best){ if(nd.bestLogo) h+='<image href="'+nd.bestLogo+'" x="'+(p.x1-8-(nd.bestW||60)-18)+'" y="'+(my-7)+'" width="14" height="14"></image>'; h+='<text class="best" x="'+(p.x1-8)+'" y="'+(my+4)+'" text-anchor="end"'+(nd.bestColor?' style="fill:'+nd.bestColor+'"':'')+'>'+esc(nd.best)+'</text>'; }
+        } else { h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'" fill="'+(nd.color||'var(--muted)')+'" opacity=".85"></rect>';
+          var side=c.labelSide||'right', lx=side==='left'?p.x0-7:p.x1+7;
+          h+='<text x="'+lx+'" y="'+((p.y0+p.y1)/2+4)+'" text-anchor="'+(side==='left'?'end':'start')+'">'+esc(nd.label)+(nd.cnt!=null?' <tspan class="sm">'+nd.cnt+'</tspan>':'')+'</text>'; }
+        h+='</g>'; });
+      svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML=h;
+      var byId={}; S.nodes.forEach(function(n){byId[n.id]=n;});
+      svg.querySelectorAll('.fv-node').forEach(function(g){ var id=g.getAttribute('data-id'), nd=byId[id];
+        g.addEventListener('click',function(){ if(S.isolate==='none') return; sel=(sel===id?null:id); render(); if(S.onSelect) S.onSelect(sel); });
+        g.addEventListener('mouseenter',function(ev){ if(nd&&nd.tip) showTip(ev,nd.tip); }); g.addEventListener('mousemove',mv); g.addEventListener('mouseleave',function(){tip.hidden=true;}); });
+      svg.querySelectorAll('.fv-edge').forEach(function(p){ var e=edges[+p.getAttribute('data-i')];
+        p.addEventListener('mouseenter',function(ev){ if(e.tip) showTip(ev,e.tip); }); p.addEventListener('mousemove',mv); p.addEventListener('mouseleave',function(){tip.hidden=true;}); });
+      note.innerHTML=typeof S.note==='function'?S.note({sel:sel,catOff:catOff,lit:edges.filter(litEdge)}):(S.note||'');
+      renderCtl(); setupParts(); fit(); requestAnimationFrame(fit);
+    }
+    function renderCtl(){ ctl.innerHTML=''; (S.controls||[]).forEach(function(c){
+      if(c.type==='legend'){ if(c.label){var lab=document.createElement('span'); lab.className='lab'; lab.textContent=c.label; ctl.appendChild(lab);}
+        (S.legend||[]).forEach(function(L){ var s=document.createElement('span'); s.className='cp'+(catOff[L.k]?' off':''); s.innerHTML='<i class="'+(L.dash?'d':'')+'" style="background:'+L.color+';color:'+L.color+'"></i>'+esc(L.label); s.addEventListener('click',function(){ catOff[L.k]=!catOff[L.k]; render(); }); ctl.appendChild(s); }); }
+      else if(c.type==='pills'){ if(c.label){var lab2=document.createElement('span'); lab2.className='lab'; lab2.textContent=c.label; ctl.appendChild(lab2);}
+        c.options.forEach(function(o){ var b=document.createElement('button'); b.className='pill'+(o.v===c.value?' on':''); b.textContent=o.label; b.addEventListener('click',function(){ c.value=o.v; if(c.onChange) c.onChange(o.v); }); ctl.appendChild(b); }); }
+      else if(c.type==='reset'){ var r=document.createElement('button'); r.className='pill'; r.style.marginLeft='auto'; r.textContent=c.label||'重置'; r.addEventListener('click',function(){ sel=null; catOff={}; if(c.onReset) c.onReset(); render(); }); ctl.appendChild(r); }
+      else if(c.type==='html'){ var d=document.createElement('span'); d.innerHTML=c.html; ctl.appendChild(d); } }); }
+    function setupParts(){ parts=[]; if(S.particles===false) return; svg.querySelectorAll('.fv-edge:not(.dim):not(.dash)').forEach(function(p){ var e=edges[+p.getAttribute('data-i')]; var n=Math.min(6,Math.max(1,Math.round((e.w||1)/(S.particleDiv||7)))); var col=getComputedStyle(p).stroke; for(var i=0;i<n;i++) parts.push({p:p,len:p.getTotalLength(),t:Math.random(),sp:0.00008+Math.random()*0.00005,col:col}); }); }
+    function frame(ts){ if(!running) return; var dt=Math.min(40,ts-(last||ts)); last=ts; ctx.clearRect(0,0,cv.width,cv.height);
+      parts.forEach(function(pt){ pt.t=(pt.t+pt.sp*dt)%1; ctx.fillStyle=pt.col; for(var k=0;k<4;k++){ var tt=pt.t-k*.012; if(tt<0) continue; var q=pt.p.getPointAtLength(tt*pt.len); ctx.globalAlpha=.9*(1-k*.22); ctx.beginPath(); ctx.arc(q.x*sc,q.y*sc,(2.6-k*.4)*dpr,0,Math.PI*2); ctx.fill(); } });
+      ctx.globalAlpha=1; requestAnimationFrame(frame); }
+    var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduce&&'IntersectionObserver' in window){ new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ if(!running){running=true;last=0;requestAnimationFrame(frame);} } else running=false; }); },{threshold:.05}).observe(wrap); }
+    window.addEventListener('resize',fit);
+    var api={update:function(sp){ S=sp; render(); return api; }, select:function(id){ sel=id; render(); }, state:function(){ return {sel:sel,catOff:catOff}; }, reset:function(){ sel=null; catOff={}; render(); }, el:root};
+    return api.update(spec);
+  }
+  window.FlowViz={version:"1.0.0", embed:embed};
+})();
+</script>
+<!-- /flowviz:runtime -->
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans SC',-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+  font-size:16.5px;line-height:1.92;-webkit-font-smoothing:antialiased;padding:36px 18px 60px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-family:Georgia,'Songti SC',serif;font-size:clamp(25px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.15}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{font-size:13px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em;margin:6px 0 18px}
+h2{font-family:Georgia,'Songti SC',serif;font-size:22px;font-weight:600;margin:38px 0 6px;scroll-margin-top:18px}
+h2 .zh{font-size:14px;color:var(--muted);font-weight:400;margin-left:10px}
+h3{font-size:16px;margin:22px 0 8px}
+.kicker{font-size:13px;color:var(--muted);margin:0 0 14px}
+.kicker b,.kicker strong{color:var(--ink)}
+#tocBtn{position:fixed;top:14px;left:14px;z-index:170;width:38px;height:38px;border-radius:999px;line-height:1;
+  border:1px solid var(--rule);background:var(--bg-card);color:var(--ink);font-size:15px;cursor:pointer}
+#darkBtn{position:fixed;top:14px;right:14px;z-index:170;width:38px;height:38px;border-radius:999px;line-height:1;
+  border:1px solid var(--rule);background:var(--bg-card);color:var(--ink);font-size:15px;cursor:pointer}
+.toc-sidebar{position:fixed;top:0;left:-236px;width:220px;height:100vh;background:var(--bg-card);border-right:1px solid var(--rule);
+  z-index:160;padding:22px 12px;transition:left .28s;overflow-y:auto}
+.toc-sidebar.open{left:0}
+.toc-brand{font-family:Georgia,serif;font-size:22px;font-weight:700;padding:0 10px}
+.toc-brand .dot{color:var(--accent)}
+.toc-zh{font-size:12px;color:var(--muted);padding:0 10px;margin-bottom:14px}
+.toc-item{display:block;padding:7px 10px;border-radius:7px;color:var(--ink-soft);text-decoration:none;font-size:13.5px;margin:2px 0}
+.toc-item:hover{background:var(--bg-deep);color:var(--accent)}
+.toc-item.active{background:var(--accent);color:#fff;font-weight:600}
+.toc-item .tn{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--muted-soft);margin-right:8px;letter-spacing:.05em}
+.toc-item.active .tn{color:rgba(255,255,255,.72)}
+.toc-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:155;opacity:0;pointer-events:none;transition:opacity .3s}
+.toc-backdrop.show{opacity:1;pointer-events:auto}
+@media(min-width:1200px){body{padding-left:236px}.toc-sidebar{left:0}#tocBtn{display:none}}
+/* ── 胶囊分段控件（2026-08-24 统一：母版＝房券去哪儿住.html·Klay 08-17 选定的那套）
+   原实现是「一颗一颗独立药丸」（各自带边框、gap 8px、选中填 accent）；
+   母版是「一条分段控件」：外层一个底槽，内层无边框，选中靠 bg-card 抬升。
+   只换样式不动 class 名与 DOM，JS 的 .on 切换逻辑原样可用。 ── */
+.pills{display:inline-flex;gap:0;flex-wrap:wrap;background:var(--bg-deep);
+  border:1px solid var(--rule);border-radius:10px;padding:3px;margin:14px 0 16px;
+  max-width:100%;overflow-x:auto;vertical-align:middle}
+.pill{font:inherit;font-size:14px;padding:7px 16px;border-radius:7px;cursor:pointer;
+  background:transparent;color:var(--ink-soft);border:none;transition:.14s;white-space:nowrap}
+.pill:hover{color:var(--ink)}
+.pill.on{background:var(--bg-card);color:var(--ink);font-weight:700;
+  box-shadow:0 1px 3px rgba(0,0,0,.13)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;background:var(--bg-card);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+th{background:var(--bg-deep);color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.05em;text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.ok{color:var(--moss);font-weight:600}
+.warn{color:var(--gold);font-weight:600}
+.chipset{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11.5px;color:var(--ink-soft);border:1px solid var(--rule);border-radius:6px;padding:1px 8px;white-space:nowrap;background:var(--bg)}
+img.lgo{width:18px;height:18px;border-radius:4px;background:#fff;padding:2px;vertical-align:-4px;margin-right:6px}
+.mk{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.08em;border:1.5px solid var(--ink-soft);color:var(--ink-soft);
+  border-radius:4px;padding:0 5px;margin-right:6px;vertical-align:1px;font-family:Georgia,serif}
+.callout{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0;font-size:14px}
+.callout b{color:var(--accent-deep)}
+.note{margin-top:30px;font-size:13px;color:var(--muted);border-left:3px solid var(--rule);padding-left:14px}
+.note li{margin:4px 0 4px 16px}
+.mxt td.mx{text-align:center;font-weight:700}
+.mxt th,.mxt td{border:1px solid var(--rule-soft)}
+.mxt .gb{border-left:2px solid var(--rule)}
+.mxt th[colspan]{text-align:center}
+.mxt .dim{color:var(--muted-soft)}
+.mxt th.bh{font-size:11px;letter-spacing:0}
+.mxt td.cityjump{cursor:pointer;font-weight:600;color:var(--accent);white-space:nowrap}
+.mxt td.cityjump:hover{text-decoration:underline}
+.citypanel{display:none}
+.citypanel.on{display:block}
+.bo{font-size:13px;color:var(--muted);margin:8px 0 0}
+.bo b{color:var(--gold)}
+.cityintro{font-size:13.5px;color:var(--ink-soft);margin:2px 0 10px}
+footer{margin-top:44px;font-size:12px;color:var(--muted-soft);border-top:1px solid var(--rule);padding-top:14px}
+
+/* 日/夜切换＝访客看板同款（2026-08-26 移植，源=访客数据/访客看板.html←klay-site theme-toggle）：
+   太阳/月亮图标 + 按下回弹 + 图标旋转 + 圆形揭示。图标显隐靠 html[data-theme] 精确匹配，
+   属性由 head 内联脚本保证始终显式写 light/dark。 */
+html[data-theme="light"] .icon-sun{display:none}
+html[data-theme="dark"] .icon-moon{display:none}
+#darkBtn{display:inline-flex;align-items:center;justify-content:center}
+#darkBtn svg{transition:transform .2s cubic-bezier(.16,1,.3,1)}
+#darkBtn.spin svg{animation:icon-swap .5s cubic-bezier(.16,1,.3,1)}
+#darkBtn:active{transform:scale(.94)}
+@keyframes icon-swap{from{transform:rotate(-120deg) scale(.5);opacity:.3}to{transform:rotate(0) scale(1);opacity:1}}
+/* 圆形揭示：关掉浏览器默认淡入，只留 clip-path 那个圆 */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:0}
+::view-transition-new(root){z-index:1}
+@media (prefers-reduced-motion:reduce){#darkBtn.spin svg{animation:none}}
+
+/* 夜晚星空＝访客看板同款（2026-08-26 移植，源=访客数据/访客看板.html←klay-site globals.css §16）：
+   只在夜间亮，错峰淡入+闪烁，铺顶部一带，滚动后整块淡出；纯装饰不挡点击。
+   与母版唯一差异：z-index:-1（母版 z:0 再抬 .wrap；本站六页容器各异，负 z 一条搞定，
+   星星画在 body 背景之上、所有内容之下，效果同款）。 */
+.starfield{position:fixed;left:0;right:0;top:0;height:340px;overflow:hidden;pointer-events:none;z-index:-1}
+.star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:0;
+box-shadow:0 0 3px 1px rgba(255,255,255,.45);transition:opacity .5s ease;
+animation:twinkle 3.2s ease-in-out infinite;animation-play-state:paused}
+html[data-theme="dark"] .star{opacity:.85;animation-play-state:running}
+html[data-scrolled] .starfield{opacity:0;transition:opacity .3s ease}
+.star:nth-child(1){top:22%;left:14%;transition-delay:0.05s;animation-delay:0s}
+.star:nth-child(2){top:62%;left:24%;transition-delay:0.18s;animation-delay:0.7s}
+.star:nth-child(3){top:30%;left:38%;transition-delay:0.11s;animation-delay:0.3s}
+.star:nth-child(4){top:70%;left:52%;transition-delay:0.3s;animation-delay:1.1s}
+.star:nth-child(5){top:18%;left:60%;transition-delay:0.22s;animation-delay:0.5s}
+.star:nth-child(6){top:55%;left:72%;transition-delay:0.4s;animation-delay:0.9s}
+.star:nth-child(7){top:26%;left:84%;transition-delay:0.15s;animation-delay:0.2s}
+.star:nth-child(8){top:74%;left:90%;transition-delay:0.34s;animation-delay:1.3s}
+.star:nth-child(9){top:44%;left:47%;transition-delay:0.26s;animation-delay:0.6s}
+.star:nth-child(10){top:58%;left:6%;transition-delay:0.08s;animation-delay:0.4s}
+.star:nth-child(11){top:16%;left:30%;transition-delay:0.37s;animation-delay:1s}
+.star:nth-child(12){top:66%;left:34%;transition-delay:0.13s;animation-delay:1.5s}
+.star:nth-child(13){top:34%;left:8%;transition-delay:0.44s;animation-delay:0.15s}
+.star:nth-child(14){top:78%;left:18%;transition-delay:0.2s;animation-delay:0.85s}
+.star:nth-child(15){top:40%;left:66%;transition-delay:0.47s;animation-delay:1.7s}
+.star:nth-child(16){top:12%;left:78%;transition-delay:0.09s;animation-delay:0.45s}
+.star:nth-child(17){top:64%;left:95%;transition-delay:0.28s;animation-delay:1.2s}
+.star:nth-child(18){top:36%;left:93%;transition-delay:0.5s;animation-delay:0.05s}
+@keyframes twinkle{0%,100%{transform:scale(1);box-shadow:0 0 3px 1px rgba(255,255,255,.4)}
+50%{transform:scale(1.6);box-shadow:0 0 6px 2px rgba(255,255,255,.75)}}
+@media (prefers-reduced-motion: reduce){html[data-theme="dark"] .star{animation:none;opacity:.7}}
+</style>
+<style>
+/* 区域航线页专用（三张共用，生成器唯一实现） */
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+td.num,th.num{text-align:right;font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.mini{font-size:11.5px;color:var(--muted);display:block;line-height:1.5}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:5px;padding:1px 7px;white-space:nowrap}
+.b-ok{background:var(--moss-soft);color:var(--moss);border:1px solid var(--moss)}
+.b-warn{background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold)}
+.b-err{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.b-neu{background:var(--bg-deep);color:var(--muted);border:1px solid var(--rule)}
+tr.gone td{opacity:.62}
+tr.gone td:first-child{opacity:1}
+.tblwrap{overflow-x:auto;margin:12px 0}
+table.wide{min-width:940px}
+.cn{font-weight:600;white-space:nowrap}
+ul.clean{list-style:none;margin:12px 0}
+ul.clean li{position:relative;padding-left:15px;margin:8px 0;font-size:14.5px;line-height:1.85}
+ul.clean li:before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--rule)}
+.callout.okcall{background:var(--moss-soft);border-left-color:var(--moss)}
+.callout.okcall b{color:var(--moss)}
+.callout.warncall{background:var(--gold-soft);border-left-color:var(--gold)}
+.callout.warncall b{color:var(--gold)}
+#flow{margin:14px 0 6px}
+/* 家族切换条（三家族互相倒流的第一层） */
+.fam{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 18px;font-size:13px}
+.fam a{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid var(--rule);
+  background:var(--bg-card);color:var(--ink-soft);text-decoration:none;transition:.14s}
+.fam a:hover{border-color:var(--accent);color:var(--accent)}
+.fam a.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.fam .sep{color:var(--muted-soft);margin:0 2px}
+.fam .idx{margin-left:auto;color:var(--muted);font-size:12px}
+.mirror{display:inline-block;margin:0 0 6px 2px;font-size:13px;color:var(--accent);text-decoration:none;border-bottom:1px dashed var(--accent)}
+.mirror:hover{border-bottom-style:solid}
+</style>
+<body>
+<div class="starfield" aria-hidden="true"><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span></div>
+<button id="tocBtn" title="目录">☰</button>
+<button id="darkBtn" title="暗/亮" aria-label="Toggle dark mode"><svg class="icon-sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg><svg class="icon-moon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M20.6 14.6A8.6 8.6 0 0 1 9.4 3.4 9 9 0 1 0 20.6 14.6z"/></svg></button>
+<aside class="toc-sidebar" id="toc">
+  <div class="toc-brand">Nearshore<span class="dot">.</span></div>
+  <div class="toc-zh">美墨加勒比航线</div>
+  <a class="toc-item" href="#s1"><span class="tn">I</span>格局 · 2026 三件事</a>
+  <a class="toc-item" href="#s2"><span class="tn">II</span>流向图</a>
+  <a class="toc-item" href="#s3"><span class="tn">III</span>墨西哥 · 城市</a>
+  <a class="toc-item" href="#s4"><span class="tn">IV</span>墨西哥 · 海滩</a>
+  <a class="toc-item" href="#s5"><span class="tn">V</span>多米尼加 · 波多黎各</a>
+  <a class="toc-item" href="#s6"><span class="tn">VI</span>牙买加 · 巴哈马 · 阿鲁巴</a>
+  <a class="toc-item" href="#s7"><span class="tn">VII</span>古巴 · 东加勒比</a>
+  <a class="toc-item" href="#s8"><span class="tn">VIII</span>2026 新开与停飞</a>
+  <a class="toc-item" href="#s9"><span class="tn">IX</span>口径与未核</a>
+</aside>
+<div class="toc-backdrop" id="tocBack"></div>
+
+<div class="wrap">
+<nav class="fam"><a href="../中国出发/index.html">🇨🇳 中国出发</a><span class="sep">·</span><a class="on" href="index.html">🇺🇸 美国出发</a><span class="sep">·</span><a href="../欧洲出发/index.html">🇪🇺 欧洲出发</a><a class="idx" href="../index.html">全站首页 ↗</a></nav><h1>美墨加勒比航线 · <em>美国人的近海</em></h1>
+<div class="sub">UNITED STATES ⇄ MEXICO · CARIBBEAN · 六个墨西哥城市 ＋ 十个加勒比岛 · 2026-09（淡季快照）</div>
+<div class="kicker">美墨是全球最大的国际航空市场之一（2026 夏约 2,550 万双向座位），加勒比是美国人的度假后院。这一页按<b>门户 → 目的地</b>的粒度做，不拆到航司；<b>9 月是淡季</b>，冬季普遍更密。🔴 <b>航班号全表未核；逐线票价一律未核。</b></div>
+
+<h2 id="s1">一、格局<span class="zh">制裁、合资体、Spirit 倒闭</span></h2>
+<div class="kicker">先看这一节。2026 年美墨市场在缩（−6.7%），但缩的是美国航司，墨西哥航司份额从 34% 涨到 40%。</div>
+
+<div class="callout"><div class="ch">🔴 一句话：Volaris 已经是美墨第一大航司</div>
+<ul class="clean">
+  <li><b>2026 夏美墨约 2,550 万双向座位，同比 −6.7%</b>；美国航司减座约 100 万（美航 −17 万、阿拉斯加 −24 万即 −38%）。</li>
+  <li>份额：<b>Volaris 21.4%（545 万座，第一）· 美航 19.6% · 美联航 16.6% · Viva 8.4% · 墨航 7.6%</b>。达美/西南/阿拉斯加/捷蓝/边疆份额未核。</li>
+  <li>目的地座位（2026 夏）：墨西哥城 314 万（+2.3%）· <b>坎昆 313 万（−15.5%）</b> · 瓜达拉哈拉 199 万 · 洛斯卡沃斯 118 万。</li>
+</ul></div>
+
+<div class="callout warncall"><div class="ch">2026 年三件大事</div>
+<ul class="clean">
+  <li><b>美国交通部制裁墨西哥航司</b>（2025-10-28 令）：否决 11 条新线（Volaris 墨西哥城–纽瓦克、墨航墨西哥城–圣胡安、Viva 从 AIFA 飞九个美国城市），勒令墨航停 AIFA–休斯敦/麦卡伦，冻结三家墨航在墨西哥城两场的新增频次。2026-05-06 墨美达成初步协议，但制裁<b>未解除</b>，业内预期持续到 2027-04；13 条被否航线无一恢复。墨航的应对是换大机型不开新线。</li>
+  <li><b>达美–墨航合资体保住了</b>：交通部下令 2026-01-01 终止反垄断豁免，<b>2026-08-20 第十一巡回上诉法院撤销该命令</b>（理由：对美日合资体在羽田同样受限却未追究，标准不一）。合资体继续有效。</li>
+  <li><b>Spirit 2026-05-02 停业</b>：其劳德代尔堡出发的加勒比线（圣胡安、蓬塔卡纳、圣多明各、阿鲁巴、蒙特哥贝、金斯顿、拿骚）全部消失；边疆接手的 8 条全是国内线；捷蓝在劳德代尔堡加密部分回填。</li>
+  <li>另：<b>Volaris–Viva 2025-12 宣布合并</b>（合并后占墨西哥国内客流约七成），审批中；Volaris 逆势扩张 +12% 美国运力，6 月新开底特律、盐湖城，12 月新开亚特兰大、华盛顿。</li>
+</ul></div>
+
+<h3>最密城市对（FlightConnections 2026-09 单向到港班次，代理排名；座位榜未核）</h3>
+<div class="tblwrap"><table class="wide" style="min-width:560px">
+<thead><tr><th>#</th><th>城市对</th><th class="num">9 月班次（单向/月）</th></tr></thead><tbody>
+<tr><td>1</td><td class="cn">休斯敦–墨西哥城</td><td class="num"><b>279</b></td></tr>
+<tr><td>2</td><td class="cn">洛杉矶–墨西哥城</td><td class="num">231</td></tr>
+<tr><td>3</td><td class="cn">洛杉矶–瓜达拉哈拉</td><td class="num">225（Cirium 称美墨第一城市对：Volaris 35/周 ＋ Viva 12 ＋ 墨航 8 ＋ 阿拉斯加 7）</td></tr>
+<tr><td>4</td><td class="cn">休斯敦–蒙特雷</td><td class="num">220</td></tr>
+<tr><td>5</td><td class="cn">芝加哥–墨西哥城</td><td class="num">206</td></tr>
+<tr><td>6</td><td class="cn">达拉斯–墨西哥城</td><td class="num">203</td></tr>
+<tr><td>7</td><td class="cn">迈阿密–墨西哥城</td><td class="num">198</td></tr>
+<tr><td>8</td><td class="cn">迈阿密–圣胡安</td><td class="num">195</td></tr>
+<tr><td>9</td><td class="cn">迈阿密–拿骚</td><td class="num">189</td></tr>
+<tr><td>10</td><td class="cn">达拉斯–蒙特雷</td><td class="num">187</td></tr>
+<tr><td>参考</td><td class="cn">奥兰多–圣胡安 <b>509</b> · JFK–圣多明各 191 · JFK–圣胡安 187 · JFK–墨西哥城 162 · 迈阿密–哈瓦那 158 · 达拉斯–坎昆 151</td><td class="num">奥兰多–圣胡安若计入则居首（国内线）</td></tr>
+</tbody></table></div>
+
+<h2 id="s2">二、流向图<span class="zh">美国门户 → 墨西哥 · 加勒比</span></h2>
+<div class="kicker"><b>红线＝美国航司为主，绿线＝墨西哥/加勒比航司为主，灰虚线＝无直飞。</b>本页一行一门户，颜色按主承运方。右上可按国别筛。</div>
+<div id="flow"></div>
+
+<h2 id="s3">三、墨西哥城 · 瓜达拉哈拉 · 蒙特雷<span class="zh">商务与探亲线</span></h2>
+<div class="kicker">休斯敦–墨西哥城是全美最密门户（≈64 班/周）；瓜达拉哈拉的洛杉矶线是美墨第一城市对；蒙特雷靠休斯敦、达拉斯，Viva 一家 50 条美线。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="纽约" data-fo="墨西哥城" data-direct="1" data-wk="58" data-cat="对方航司" data-note="Volaris 墨西哥城–纽瓦克被美国交通部否决；墨航换 737 MAX" data-grp="墨西哥"><td class="cn">纽约 ⇄ 墨西哥城</td><td>墨航 · 美航 · 达美 · Viva（JFK）· 墨航（纽瓦克）</td><td>JFK ≈37 ＋ 纽瓦克 ≈21</td><td>未核</td><td>Volaris 墨西哥城–纽瓦克被美国交通部否决；墨航换 737 MAX</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="墨西哥城" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">波士顿 ⇄ 墨西哥城</td><td>墨航</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="墨西哥城" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">华盛顿 ⇄ 墨西哥城</td><td>墨航 · 美联航</td><td>≈14</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="墨西哥城" data-direct="1" data-wk="48" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">芝加哥 ⇄ 墨西哥城</td><td>墨航 · 美航 · 美联航 · Volaris · Viva</td><td>≈48</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="墨西哥城" data-direct="1" data-wk="34" data-cat="美国航司" data-note="达美/墨航合资体继续（第十一巡回法院 8/20 撤销交通部终止令）" data-grp="墨西哥"><td class="cn">亚特兰大 ⇄ 墨西哥城</td><td>墨航 · 达美</td><td>≈34</td><td>未核</td><td>达美/墨航合资体继续（第十一巡回法院 8/20 撤销交通部终止令）</td><td><span class="mini">[S][A]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="墨西哥城" data-direct="1" data-wk="46" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">迈阿密 ⇄ 墨西哥城</td><td>墨航 · 美航 · Volaris</td><td>≈46</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="墨西哥城" data-direct="1" data-wk="47" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">达拉斯 ⇄ 墨西哥城</td><td>墨航 · 美航 · Volaris</td><td>≈47</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="墨西哥城" data-direct="1" data-wk="64" data-cat="对方航司" data-note="<b>全美最密门户</b>" data-grp="墨西哥"><td class="cn">休斯敦 ⇄ 墨西哥城</td><td>墨航 · 美联航 · Volaris · Viva</td><td>≈64</td><td>未核</td><td><b>全美最密门户</b></td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="洛杉矶" data-fo="墨西哥城" data-direct="1" data-wk="53" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">洛杉矶 ⇄ 墨西哥城</td><td>墨航 · 美航 · 达美（季节）· Volaris · Viva</td><td>≈53</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="旧金山" data-fo="墨西哥城" data-direct="1" data-wk="33" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">旧金山 ⇄ 墨西哥城</td><td>墨航 · 美联航</td><td>≈33</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="丹佛" data-fo="墨西哥城" data-direct="1" data-wk="20" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">丹佛 ⇄ 墨西哥城</td><td>墨航 · 美联航 · Volaris · Viva</td><td>≈20</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="墨西哥城" data-direct="1" data-wk="24" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">奥兰多 ⇄ 墨西哥城</td><td>墨航 · Volaris · Viva</td><td>≈24</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="瓜达拉哈拉" data-direct="1" data-wk="3" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">华盛顿 ⇄ 瓜达拉哈拉</td><td><b>Volaris</b>（A320neo）</td><td>3，<b>2026-12-01 新开</b></td><td>未核</td><td>—</td><td><span class="mini">[S] AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="瓜达拉哈拉" data-direct="1" data-wk="22" data-cat="对方航司" data-note="墨航奥黑尔线 8/17–12/16 停飞" data-grp="墨西哥"><td class="cn">芝加哥 ⇄ 瓜达拉哈拉</td><td>墨航 · Viva · Volaris（奥黑尔）· Volaris（中途）</td><td>≈18 ＋ ≈4</td><td>未核</td><td>墨航奥黑尔线 8/17–12/16 停飞</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="瓜达拉哈拉" data-direct="1" data-wk="7" data-cat="美国航司" data-note="Volaris 对达美直接竞争" data-grp="墨西哥"><td class="cn">亚特兰大 ⇄ 瓜达拉哈拉</td><td>达美；Volaris 12/2 新开 4</td><td>≈7</td><td>未核</td><td>Volaris 对达美直接竞争</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="瓜达拉哈拉" data-direct="1" data-wk="4" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">迈阿密 ⇄ 瓜达拉哈拉</td><td>承运人未核</td><td>≈4</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="瓜达拉哈拉" data-direct="1" data-wk="22" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">达拉斯 ⇄ 瓜达拉哈拉</td><td>美航 · Volaris</td><td>≈22</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="瓜达拉哈拉" data-direct="1" data-wk="28" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">休斯敦 ⇄ 瓜达拉哈拉</td><td>美联航 · Viva · Volaris</td><td>≈28</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="洛杉矶" data-fo="瓜达拉哈拉" data-direct="1" data-wk="52" data-cat="对方航司" data-note="<b>全美墨最大城市对</b>（8–12 月 14.6 万座）" data-grp="墨西哥"><td class="cn">洛杉矶 ⇄ 瓜达拉哈拉</td><td><b>Volaris 35 · Viva 12 · 墨航 8 · 阿拉斯加 7</b></td><td>≈52（合计 62 按 Cirium）</td><td>未核</td><td><b>全美墨最大城市对</b>（8–12 月 14.6 万座）</td><td><span class="mini">[S][D] Cirium</span></td></tr>
+<tr class="tp" data-cn="旧金山" data-fo="瓜达拉哈拉" data-direct="1" data-wk="0" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">旧金山 ⇄ 瓜达拉哈拉</td><td>墨航（8/17–12/16 停）· Volaris（奥克兰 ≈17 · 圣何塞 ≈11）</td><td>旧金山未核；湾区另两场 ≈28</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="丹佛" data-fo="瓜达拉哈拉" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">丹佛 ⇄ 瓜达拉哈拉</td><td>承运人未核</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="蒙特雷" data-direct="1" data-wk="51" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">休斯敦 ⇄ 蒙特雷</td><td>Viva · Volaris · 墨航 · 美联航（承运人明细未核）</td><td>≈51</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="蒙特雷" data-direct="1" data-wk="43" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">达拉斯 ⇄ 蒙特雷</td><td>承运人明细未核</td><td>≈43</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="蒙特雷" data-direct="1" data-wk="11" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">亚特兰大 ⇄ 蒙特雷</td><td>承运人明细未核</td><td>≈11</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="蒙特雷" data-direct="1" data-wk="10" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">芝加哥 ⇄ 蒙特雷</td><td>承运人明细未核</td><td>≈10</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="蒙特雷" data-direct="1" data-wk="8" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">迈阿密 ⇄ 蒙特雷</td><td>承运人明细未核</td><td>≈8</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="旧金山" data-fo="蒙特雷" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">旧金山 ⇄ 蒙特雷</td><td>承运人明细未核</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="蒙特雷" data-direct="1" data-wk="4" data-cat="对方航司" data-note="Viva 计划 JFK 新一号航站楼开放后加密" data-grp="墨西哥"><td class="cn">纽约 ⇄ 蒙特雷</td><td>承运人明细未核（JFK）</td><td>≈4</td><td>未核</td><td>Viva 计划 JFK 新一号航站楼开放后加密</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="洛杉矶" data-fo="蒙特雷" data-direct="1" data-wk="4" data-cat="对方航司" data-note="—" data-grp="墨西哥"><td class="cn">洛杉矶 ⇄ 蒙特雷</td><td>承运人明细未核</td><td>≈4</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div><h3>无直飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="纽约" data-fo="瓜达拉哈拉" data-direct="0" data-wk="0" data-cat="无直飞" data-note="纽约、波士顿、纽瓦克均无直飞" data-grp="墨西哥"><td class="cn">纽约 ⇄ 瓜达拉哈拉</td><td><s>无</s></td><td>0</td><td>—</td><td>纽约、波士顿、纽瓦克均无直飞</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="波士顿" data-fo="瓜达拉哈拉" data-direct="0" data-wk="0" data-cat="无直飞" data-note="—" data-grp="墨西哥"><td class="cn">波士顿 ⇄ 瓜达拉哈拉</td><td><s>无</s></td><td>0</td><td>—</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="华盛顿" data-fo="蒙特雷" data-direct="0" data-wk="0" data-cat="无直飞" data-note="纽瓦克、波士顿、华盛顿、丹佛无直飞；美航凤凰城–蒙特雷 12/1 后停" data-grp="墨西哥"><td class="cn">华盛顿 ⇄ 蒙特雷</td><td><s>无</s></td><td>0</td><td>—</td><td>纽瓦克、波士顿、华盛顿、丹佛无直飞；美航凤凰城–蒙特雷 12/1 后停</td><td><span class="mini">[S][D]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s4">四、坎昆 · 洛斯卡沃斯 · 巴亚尔塔港<span class="zh">度假线，冬季才是旺季</span></h2>
+<div class="kicker">坎昆 2026 夏座位 −15.5%，减了 57.7 万座；阿拉斯加春季停了洛杉矶/旧金山–坎昆、拉斯维加斯–巴亚尔塔港/洛斯卡沃斯，冬季不复飞（转投夏威夷）。美联航 10/25 新开华盛顿–洛斯卡沃斯。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="纽约" data-fo="坎昆" data-direct="1" data-wk="37" data-cat="美国航司" data-note="达美冬季加班；纽瓦克美联航是否在列未核" data-grp="墨西哥"><td class="cn">纽约 ⇄ 坎昆</td><td>美航 · 达美 · 捷蓝（JFK）· 美航 · 达美（纽瓦克）</td><td>JFK ≈23 ＋ 纽瓦克 ≈14</td><td>未核</td><td>达美冬季加班；纽瓦克美联航是否在列未核</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="坎昆" data-direct="1" data-wk="4" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">波士顿 ⇄ 坎昆</td><td>美航 · 达美 · 捷蓝</td><td>≈4（冬季显著加密）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="坎昆" data-direct="1" data-wk="9" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">华盛顿 ⇄ 坎昆</td><td>美航 · 美联航</td><td>≈9</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="坎昆" data-direct="1" data-wk="17" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">芝加哥 ⇄ 坎昆</td><td>美航 · 达美 · 西南 · 美联航 · 边疆</td><td>≈17</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="坎昆" data-direct="1" data-wk="33" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">亚特兰大 ⇄ 坎昆</td><td>美航 · 达美 · 边疆 · 西南</td><td>≈33</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="坎昆" data-direct="1" data-wk="20" data-cat="美国航司" data-note="墨航坎昆–迈阿密 5/1–8/16 停飞" data-grp="墨西哥"><td class="cn">迈阿密 ⇄ 坎昆</td><td>美航 · 捷蓝 · LATAM</td><td>≈20</td><td>未核</td><td>墨航坎昆–迈阿密 5/1–8/16 停飞</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="坎昆" data-direct="1" data-wk="35" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">达拉斯 ⇄ 坎昆</td><td>美航 · 西南</td><td>≈35</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="坎昆" data-direct="1" data-wk="31" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">休斯敦 ⇄ 坎昆</td><td>美联航</td><td>≈31</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="洛杉矶" data-fo="坎昆" data-direct="1" data-wk="14" data-cat="美国航司" data-note="阿拉斯加 5 月停、冬季不复飞" data-grp="墨西哥"><td class="cn">洛杉矶 ⇄ 坎昆</td><td>美航 · 达美</td><td>≈14</td><td>未核</td><td>阿拉斯加 5 月停、冬季不复飞</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="旧金山" data-fo="坎昆" data-direct="1" data-wk="7" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">旧金山 ⇄ 坎昆</td><td>美联航（阿拉斯加 3 月已停）</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="丹佛" data-fo="坎昆" data-direct="1" data-wk="14" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">丹佛 ⇄ 坎昆</td><td>达美 · 西南</td><td>≈14</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="坎昆" data-direct="1" data-wk="12" data-cat="美国航司" data-note="拉斯维加斯西南 6/4 新开 5/周" data-grp="墨西哥"><td class="cn">奥兰多 ⇄ 坎昆</td><td>捷蓝 · 西南</td><td>≈12</td><td>未核</td><td>拉斯维加斯西南 6/4 新开 5/周</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="洛斯卡沃斯" data-direct="1" data-wk="4" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">华盛顿 ⇄ 洛斯卡沃斯</td><td><b>美联航</b> UA1104/1103（737 MAX 8）</td><td>4 → 每日（12/19–1/3），<b>2026-10-25 新开</b></td><td>未核</td><td>—</td><td><span class="mini">[S] AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="洛斯卡沃斯" data-direct="1" data-wk="3" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">纽约 ⇄ 洛斯卡沃斯</td><td>承运人未核（季节性）</td><td>JFK ≈2 ＋ 纽瓦克 ≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="洛斯卡沃斯" data-direct="1" data-wk="3" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">芝加哥 ⇄ 洛斯卡沃斯</td><td>承运人未核</td><td>≈3</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="洛斯卡沃斯" data-direct="1" data-wk="7" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">亚特兰大 ⇄ 洛斯卡沃斯</td><td>承运人未核</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="洛斯卡沃斯" data-direct="1" data-wk="19" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">达拉斯 ⇄ 洛斯卡沃斯</td><td>承运人未核</td><td>≈19</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="洛斯卡沃斯" data-direct="1" data-wk="25" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">休斯敦 ⇄ 洛斯卡沃斯</td><td>承运人未核（IAH ≈13 · HOU ≈12）</td><td>≈25</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="洛杉矶" data-fo="洛斯卡沃斯" data-direct="1" data-wk="24" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">洛杉矶 ⇄ 洛斯卡沃斯</td><td>承运人未核</td><td>≈24</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="旧金山" data-fo="洛斯卡沃斯" data-direct="1" data-wk="12" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">旧金山 ⇄ 洛斯卡沃斯</td><td>承运人未核</td><td>≈12</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="丹佛" data-fo="洛斯卡沃斯" data-direct="1" data-wk="9" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">丹佛 ⇄ 洛斯卡沃斯</td><td>承运人未核</td><td>≈9</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="巴亚尔塔港" data-direct="1" data-wk="6" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">亚特兰大 ⇄ 巴亚尔塔港</td><td>达美</td><td>≈6</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="巴亚尔塔港" data-direct="1" data-wk="12" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">达拉斯 ⇄ 巴亚尔塔港</td><td>美航</td><td>≈12</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="巴亚尔塔港" data-direct="1" data-wk="14" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">休斯敦 ⇄ 巴亚尔塔港</td><td>美联航（IAH）· 西南（HOU）</td><td>≈7 ＋ ≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="洛杉矶" data-fo="巴亚尔塔港" data-direct="1" data-wk="15" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">洛杉矶 ⇄ 巴亚尔塔港</td><td>阿拉斯加 · 美航 · 达美 · 美联航</td><td>≈15</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="旧金山" data-fo="巴亚尔塔港" data-direct="1" data-wk="2" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">旧金山 ⇄ 巴亚尔塔港</td><td>阿拉斯加 · 美联航</td><td>≈2</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="丹佛" data-fo="巴亚尔塔港" data-direct="1" data-wk="3" data-cat="美国航司" data-note="—" data-grp="墨西哥"><td class="cn">丹佛 ⇄ 巴亚尔塔港</td><td>西南 · 美联航</td><td>≈3</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="巴亚尔塔港" data-direct="1" data-wk="0" data-cat="美国航司" data-note="纽瓦克同" data-grp="墨西哥"><td class="cn">芝加哥 ⇄ 巴亚尔塔港</td><td>有直飞，班次未核</td><td>未核</td><td>未核</td><td>纽瓦克同</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div><h3>无直飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="波士顿" data-fo="洛斯卡沃斯" data-direct="0" data-wk="0" data-cat="无直飞" data-note="波士顿、迈阿密、夏洛特无直飞" data-grp="墨西哥"><td class="cn">波士顿 ⇄ 洛斯卡沃斯</td><td><s>无</s></td><td>0</td><td>—</td><td>波士顿、迈阿密、夏洛特无直飞</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="迈阿密" data-fo="洛斯卡沃斯" data-direct="0" data-wk="0" data-cat="无直飞" data-note="—" data-grp="墨西哥"><td class="cn">迈阿密 ⇄ 洛斯卡沃斯</td><td><s>无</s></td><td>0</td><td>—</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="纽约" data-fo="巴亚尔塔港" data-direct="0" data-wk="0" data-cat="无直飞" data-note="JFK、波士顿、华盛顿、迈阿密本月无；冬季季节性未核" data-grp="墨西哥"><td class="cn">纽约 ⇄ 巴亚尔塔港</td><td><s>无</s>（本月）</td><td>0</td><td>—</td><td>JFK、波士顿、华盛顿、迈阿密本月无；冬季季节性未核</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s5">五、蓬塔卡纳 · 圣多明各 · 圣胡安<span class="zh">纽约人的岛</span></h2>
+<div class="kicker">JFK 是圣多明各最密美国门户（≈44 班/周）；奥兰多–圣胡安是全美最密（≈118 班/周，国内线）。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="纽约" data-fo="蓬塔卡纳" data-direct="1" data-wk="43" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">纽约 ⇄ 蓬塔卡纳</td><td>美航 · 达美（JFK）· 美联航（纽瓦克）</td><td>≈25 ＋ ≈18</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="蓬塔卡纳" data-direct="1" data-wk="4" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">波士顿 ⇄ 蓬塔卡纳</td><td>美航 · 捷蓝</td><td>≈4</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="蓬塔卡纳" data-direct="1" data-wk="7" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">华盛顿 ⇄ 蓬塔卡纳</td><td>美联航</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="蓬塔卡纳" data-direct="1" data-wk="6" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">芝加哥 ⇄ 蓬塔卡纳</td><td>美航 · Arajet · 美联航</td><td>≈6</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="蓬塔卡纳" data-direct="1" data-wk="16" data-cat="美国航司" data-note="达美换大机型" data-grp="多米尼加"><td class="cn">亚特兰大 ⇄ 蓬塔卡纳</td><td>美航 · 达美 · 边疆</td><td>≈16</td><td>未核</td><td>达美换大机型</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="蓬塔卡纳" data-direct="1" data-wk="26" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">迈阿密 ⇄ 蓬塔卡纳</td><td>美航 · Arajet · LATAM</td><td>≈26</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="蓬塔卡纳" data-direct="1" data-wk="13" data-cat="美国航司" data-note="劳德代尔堡捷蓝 ≈8；精神航空 5/2 停业后 FLL 线消失" data-grp="多米尼加"><td class="cn">奥兰多 ⇄ 蓬塔卡纳</td><td>捷蓝 · 西南</td><td>≈13</td><td>未核</td><td>劳德代尔堡捷蓝 ≈8；精神航空 5/2 停业后 FLL 线消失</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="蓬塔卡纳" data-direct="1" data-wk="0" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">达拉斯 ⇄ 蓬塔卡纳</td><td>美航</td><td>≈0（1 班/月）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="蓬塔卡纳" data-direct="1" data-wk="1" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">休斯敦 ⇄ 蓬塔卡纳</td><td>美联航</td><td>≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="圣多明各" data-direct="1" data-wk="75" data-cat="美国航司" data-note="<b>JFK 是圣多明各最密美国门户</b>" data-grp="多米尼加"><td class="cn">纽约 ⇄ 圣多明各</td><td>达美 · 捷蓝（JFK）· Arajet · 美联航（纽瓦克）</td><td>≈44 ＋ ≈31</td><td>约 4h17</td><td><b>JFK 是圣多明各最密美国门户</b></td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="圣多明各" data-direct="1" data-wk="13" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">波士顿 ⇄ 圣多明各</td><td>Arajet · 捷蓝</td><td>≈13</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="圣多明各" data-direct="1" data-wk="7" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">亚特兰大 ⇄ 圣多明各</td><td>达美</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="圣多明各" data-direct="1" data-wk="33" data-cat="美国航司" data-note="劳德代尔堡捷蓝 ≈16（7/9 起 2 班/日）" data-grp="多米尼加"><td class="cn">迈阿密 ⇄ 圣多明各</td><td>美航 · Arajet</td><td>≈33</td><td>未核</td><td>劳德代尔堡捷蓝 ≈16（7/9 起 2 班/日）</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="圣多明各" data-direct="1" data-wk="6" data-cat="美国航司" data-note="—" data-grp="多米尼加"><td class="cn">奥兰多 ⇄ 圣多明各</td><td>边疆 · 捷蓝</td><td>≈6</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="圣多明各" data-direct="1" data-wk="0" data-cat="美国航司" data-note="休斯敦同" data-grp="多米尼加"><td class="cn">华盛顿 ⇄ 圣多明各</td><td>有限/季节，未核</td><td>未核</td><td>未核</td><td>休斯敦同</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="圣胡安" data-direct="1" data-wk="74" data-cat="美国航司" data-note="—" data-grp="波多黎各"><td class="cn">纽约 ⇄ 圣胡安</td><td>达美 · 捷蓝 · 边疆（JFK）· 边疆 · 捷蓝 · 美联航（纽瓦克）</td><td>≈43 ＋ ≈31</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="圣胡安" data-direct="1" data-wk="21" data-cat="美国航司" data-note="—" data-grp="波多黎各"><td class="cn">波士顿 ⇄ 圣胡安</td><td>达美 · 边疆 · 捷蓝</td><td>≈21</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="圣胡安" data-direct="1" data-wk="12" data-cat="美国航司" data-note="—" data-grp="波多黎各"><td class="cn">华盛顿 ⇄ 圣胡安</td><td>多家（DCA＋IAD）</td><td>≈12</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="圣胡安" data-direct="1" data-wk="11" data-cat="美国航司" data-note="—" data-grp="波多黎各"><td class="cn">芝加哥 ⇄ 圣胡安</td><td>美航 · 边疆 · 美联航</td><td>≈11</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="圣胡安" data-direct="1" data-wk="33" data-cat="美国航司" data-note="—" data-grp="波多黎各"><td class="cn">亚特兰大 ⇄ 圣胡安</td><td>达美 · 边疆 · 美航</td><td>≈33</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="圣胡安" data-direct="1" data-wk="45" data-cat="美国航司" data-note="美航冬季最多 8 班/日" data-grp="波多黎各"><td class="cn">迈阿密 ⇄ 圣胡安</td><td>美航 · 边疆</td><td>≈45</td><td>未核</td><td>美航冬季最多 8 班/日</td><td><span class="mini">[S][A]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="圣胡安" data-direct="1" data-wk="118" data-cat="美国航司" data-note="<b>全美最密门户</b>；劳德代尔堡 ≈32" data-grp="波多黎各"><td class="cn">奥兰多 ⇄ 圣胡安</td><td>捷蓝 · 边疆 · 西南</td><td>≈118</td><td>未核</td><td><b>全美最密门户</b>；劳德代尔堡 ≈32</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="圣胡安" data-direct="1" data-wk="5" data-cat="美国航司" data-note="—" data-grp="波多黎各"><td class="cn">达拉斯 ⇄ 圣胡安</td><td>美航 · 边疆</td><td>≈5</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="圣胡安" data-direct="1" data-wk="7" data-cat="美国航司" data-note="—" data-grp="波多黎各"><td class="cn">休斯敦 ⇄ 圣胡安</td><td>边疆</td><td>每日，<b>12/17 新开</b></td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="洛杉矶" data-fo="圣胡安" data-direct="1" data-wk="0" data-cat="美国航司" data-note="旧金山同" data-grp="波多黎各"><td class="cn">洛杉矶 ⇄ 圣胡安</td><td>未列直飞，未核</td><td>未核</td><td>未核</td><td>旧金山同</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div><h3>无直飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="洛杉矶" data-fo="蓬塔卡纳" data-direct="0" data-wk="0" data-cat="无直飞" data-note="洛杉矶、旧金山无直飞" data-grp="多米尼加"><td class="cn">洛杉矶 ⇄ 蓬塔卡纳</td><td><s>无</s></td><td>0</td><td>—</td><td>洛杉矶、旧金山无直飞</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="芝加哥" data-fo="圣多明各" data-direct="0" data-wk="0" data-cat="无直飞" data-note="芝加哥、达拉斯、洛杉矶、旧金山无直飞" data-grp="多米尼加"><td class="cn">芝加哥 ⇄ 圣多明各</td><td><s>无</s></td><td>0</td><td>—</td><td>芝加哥、达拉斯、洛杉矶、旧金山无直飞</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s6">六、蒙特哥贝 · 金斯顿 · 拿骚 · 阿鲁巴<span class="zh">迈阿密与东岸</span></h2>
+<div class="kicker">拿骚靠迈阿密/劳德代尔堡短途（≈85 班/周）；金斯顿只有 JFK、佛州、亚特兰大四口；阿鲁巴东岸厚、中西部零。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="纽约" data-fo="蒙特哥贝" data-direct="1" data-wk="29" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">纽约 ⇄ 蒙特哥贝</td><td>美航 · 达美 · 捷蓝（JFK）· 美联航（纽瓦克）</td><td>≈22 ＋ ≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="蒙特哥贝" data-direct="1" data-wk="2" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">波士顿 ⇄ 蒙特哥贝</td><td>达美 · 捷蓝</td><td>≈2</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="蒙特哥贝" data-direct="1" data-wk="9" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">华盛顿 ⇄ 蒙特哥贝</td><td>西南（巴尔的摩）</td><td>≈9</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="蒙特哥贝" data-direct="1" data-wk="2" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">芝加哥 ⇄ 蒙特哥贝</td><td>美航 · 美联航</td><td>≈2</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="蒙特哥贝" data-direct="1" data-wk="23" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">亚特兰大 ⇄ 蒙特哥贝</td><td>达美 · 边疆</td><td>≈23</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="蒙特哥贝" data-direct="1" data-wk="12" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">迈阿密 ⇄ 蒙特哥贝</td><td>美航</td><td>≈12</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="蒙特哥贝" data-direct="1" data-wk="5" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">达拉斯 ⇄ 蒙特哥贝</td><td>美航</td><td>≈5</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="蒙特哥贝" data-direct="1" data-wk="1" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">休斯敦 ⇄ 蒙特哥贝</td><td>美联航</td><td>≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="蒙特哥贝" data-direct="1" data-wk="14" data-cat="美国航司" data-note="劳德代尔堡捷蓝 ≈9" data-grp="牙买加"><td class="cn">奥兰多 ⇄ 蒙特哥贝</td><td>捷蓝 · 西南</td><td>≈14</td><td>未核</td><td>劳德代尔堡捷蓝 ≈9</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="金斯顿" data-direct="1" data-wk="17" data-cat="对方航司" data-note="加勒比航空美线只飞 JFK" data-grp="牙买加"><td class="cn">纽约 ⇄ 金斯顿</td><td>加勒比航空 · 捷蓝（JFK）</td><td>≈17</td><td>未核</td><td>加勒比航空美线只飞 JFK</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="金斯顿" data-direct="1" data-wk="7" data-cat="美国航司" data-note="—" data-grp="牙买加"><td class="cn">亚特兰大 ⇄ 金斯顿</td><td>达美</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="金斯顿" data-direct="1" data-wk="15" data-cat="美国航司" data-note="劳德代尔堡捷蓝 ≈15" data-grp="牙买加"><td class="cn">迈阿密 ⇄ 金斯顿</td><td>美航</td><td>≈15</td><td>未核</td><td>劳德代尔堡捷蓝 ≈15</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="拿骚" data-direct="1" data-wk="23" data-cat="美国航司" data-note="—" data-grp="巴哈马"><td class="cn">纽约 ⇄ 拿骚</td><td>达美 · 捷蓝（JFK）· 美联航（纽瓦克）</td><td>≈14 ＋ ≈9</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="拿骚" data-direct="1" data-wk="0" data-cat="美国航司" data-note="—" data-grp="巴哈马"><td class="cn">波士顿 ⇄ 拿骚</td><td>达美 · 捷蓝</td><td>季节（10 月起）；捷蓝 12/18 起每日</td><td>未核</td><td>—</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="拿骚" data-direct="1" data-wk="1" data-cat="美国航司" data-note="—" data-grp="巴哈马"><td class="cn">华盛顿 ⇄ 拿骚</td><td>美航（DCA，9 月起）· 美联航（IAD，10 月起）</td><td>≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="拿骚" data-direct="1" data-wk="0" data-cat="美国航司" data-note="—" data-grp="巴哈马"><td class="cn">芝加哥 ⇄ 拿骚</td><td>美航 · 美联航</td><td>季节（10 月起）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="拿骚" data-direct="1" data-wk="15" data-cat="美国航司" data-note="—" data-grp="巴哈马"><td class="cn">亚特兰大 ⇄ 拿骚</td><td>达美</td><td>≈15</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="拿骚" data-direct="1" data-wk="44" data-cat="美国航司" data-note="劳德代尔堡 ≈41（巴哈马航空、捷蓝等）" data-grp="巴哈马"><td class="cn">迈阿密 ⇄ 拿骚</td><td>美航 · 巴哈马航空</td><td>≈44</td><td>未核</td><td>劳德代尔堡 ≈41（巴哈马航空、捷蓝等）</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="拿骚" data-direct="1" data-wk="0" data-cat="美国航司" data-note="—" data-grp="巴哈马"><td class="cn">达拉斯 ⇄ 拿骚</td><td>美航</td><td>季节（11 月起）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="拿骚" data-direct="1" data-wk="1" data-cat="美国航司" data-note="—" data-grp="巴哈马"><td class="cn">休斯敦 ⇄ 拿骚</td><td>美联航</td><td>≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="拿骚" data-direct="1" data-wk="16" data-cat="美国航司" data-note="—" data-grp="巴哈马"><td class="cn">奥兰多 ⇄ 拿骚</td><td>巴哈马航空 · 捷蓝 · 西南</td><td>≈16</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="阿鲁巴" data-direct="1" data-wk="36" data-cat="美国航司" data-note="—" data-grp="阿鲁巴"><td class="cn">纽约 ⇄ 阿鲁巴</td><td>美航 · 达美 · 捷蓝（JFK）· 美联航（纽瓦克）</td><td>≈22 ＋ ≈14</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="阿鲁巴" data-direct="1" data-wk="13" data-cat="美国航司" data-note="—" data-grp="阿鲁巴"><td class="cn">波士顿 ⇄ 阿鲁巴</td><td>达美 · 捷蓝</td><td>≈13</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="阿鲁巴" data-direct="1" data-wk="3" data-cat="美国航司" data-note="—" data-grp="阿鲁巴"><td class="cn">华盛顿 ⇄ 阿鲁巴</td><td>美联航（IAD）· 西南（巴尔的摩）</td><td>≈1 ＋ ≈2</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="阿鲁巴" data-direct="1" data-wk="8" data-cat="美国航司" data-note="—" data-grp="阿鲁巴"><td class="cn">亚特兰大 ⇄ 阿鲁巴</td><td>达美</td><td>≈8</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="阿鲁巴" data-direct="1" data-wk="12" data-cat="美国航司" data-note="劳德代尔堡捷蓝 7/9 起每日" data-grp="阿鲁巴"><td class="cn">迈阿密 ⇄ 阿鲁巴</td><td>美航</td><td>≈12</td><td>未核</td><td>劳德代尔堡捷蓝 7/9 起每日</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="达拉斯" data-fo="阿鲁巴" data-direct="1" data-wk="0" data-cat="美国航司" data-note="—" data-grp="阿鲁巴"><td class="cn">达拉斯 ⇄ 阿鲁巴</td><td>美航</td><td><1（1 班/月）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="休斯敦" data-fo="阿鲁巴" data-direct="1" data-wk="1" data-cat="美国航司" data-note="—" data-grp="阿鲁巴"><td class="cn">休斯敦 ⇄ 阿鲁巴</td><td>美联航</td><td>≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="阿鲁巴" data-direct="1" data-wk="7" data-cat="美国航司" data-note="—" data-grp="阿鲁巴"><td class="cn">奥兰多 ⇄ 阿鲁巴</td><td>西南</td><td>≈7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div><h3>无直飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="洛杉矶" data-fo="蒙特哥贝" data-direct="0" data-wk="0" data-cat="无直飞" data-note="洛杉矶、旧金山无直飞" data-grp="牙买加"><td class="cn">洛杉矶 ⇄ 蒙特哥贝</td><td><s>无</s></td><td>0</td><td>—</td><td>洛杉矶、旧金山无直飞</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="洛杉矶" data-fo="拿骚" data-direct="0" data-wk="0" data-cat="无直飞" data-note="洛杉矶、旧金山无直飞" data-grp="巴哈马"><td class="cn">洛杉矶 ⇄ 拿骚</td><td><s>无</s></td><td>0</td><td>—</td><td>洛杉矶、旧金山无直飞</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="芝加哥" data-fo="阿鲁巴" data-direct="0" data-wk="0" data-cat="无直飞" data-note="芝加哥、洛杉矶、旧金山无直飞" data-grp="阿鲁巴"><td class="cn">芝加哥 ⇄ 阿鲁巴</td><td><s>无</s></td><td>0</td><td>—</td><td>芝加哥、洛杉矶、旧金山无直飞</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s7">七、哈瓦那 · 圣马丁 · 巴巴多斯<span class="zh">只靠迈阿密和纽约撑着</span></h2>
+<div class="kicker"><b>古巴 2026-02-08 起燃油危机</b>：9 个机场无航油，加拿大航司全停，美国航司靠自带回程油维持迈阿密、坦帕两条。圣马丁、巴巴多斯中西部与西岸零直飞。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="迈阿密" data-fo="哈瓦那" data-direct="1" data-wk="36" data-cat="美国航司" data-note="美国航司靠自带回程油维持；旅客须符合 OFAC 12 类授权" data-grp="古巴"><td class="cn">迈阿密 ⇄ 哈瓦那</td><td><b>美航</b> · 达美</td><td>≈36（2 月报道美航约 10 班/日，口径差异未核）</td><td>未核</td><td>美国航司靠自带回程油维持；旅客须符合 OFAC 12 类授权</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="哈瓦那" data-direct="1" data-wk="7" data-cat="美国航司" data-note="坦帕代表佛州中部；佛州只有迈阿密、坦帕两口" data-grp="古巴"><td class="cn">奥兰多 ⇄ 哈瓦那</td><td>西南（坦帕）</td><td>≈7</td><td>未核</td><td>坦帕代表佛州中部；佛州只有迈阿密、坦帕两口</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="圣马丁" data-direct="1" data-wk="8" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">纽约 ⇄ 圣马丁</td><td>美航 · 达美 · 捷蓝（JFK）· 美联航（纽瓦克）</td><td>≈7 ＋ ≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="圣马丁" data-direct="1" data-wk="0" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">波士顿 ⇄ 圣马丁</td><td>捷蓝</td><td><1（12/18 起每日）</td><td>未核</td><td>—</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="圣马丁" data-direct="1" data-wk="6" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">亚特兰大 ⇄ 圣马丁</td><td>达美</td><td>≈6</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="圣马丁" data-direct="1" data-wk="9" data-cat="美国航司" data-note="劳德代尔堡捷蓝 ≈5（7/9 起每日）" data-grp="东加勒比"><td class="cn">迈阿密 ⇄ 圣马丁</td><td>美航</td><td>≈9</td><td>未核</td><td>劳德代尔堡捷蓝 ≈5（7/9 起每日）</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="奥兰多" data-fo="圣马丁" data-direct="1" data-wk="5" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">奥兰多 ⇄ 圣马丁</td><td>西南</td><td>≈5</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="芝加哥" data-fo="圣马丁" data-direct="1" data-wk="0" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">芝加哥 ⇄ 圣马丁</td><td>美航 · 美联航（季节，本月 0）</td><td>季节</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="纽约" data-fo="巴巴多斯" data-direct="1" data-wk="13" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">纽约 ⇄ 巴巴多斯</td><td>美航 · 捷蓝（JFK）· 美联航（纽瓦克）</td><td>≈12 ＋ ≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="迈阿密" data-fo="巴巴多斯" data-direct="1" data-wk="12" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">迈阿密 ⇄ 巴巴多斯</td><td>美航</td><td>≈12</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="波士顿" data-fo="巴巴多斯" data-direct="1" data-wk="1" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">波士顿 ⇄ 巴巴多斯</td><td>捷蓝</td><td>≈1（1/10 起加周六第二班）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="亚特兰大" data-fo="巴巴多斯" data-direct="1" data-wk="1" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">亚特兰大 ⇄ 巴巴多斯</td><td>达美</td><td>≈1</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="华盛顿" data-fo="巴巴多斯" data-direct="1" data-wk="0" data-cat="美国航司" data-note="—" data-grp="东加勒比"><td class="cn">华盛顿 ⇄ 巴巴多斯</td><td>美联航（IAD，10 月起季节）</td><td>季节</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div><h3>无直飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="纽约" data-fo="哈瓦那" data-direct="0" data-wk="0" data-cat="无直飞" data-note="时刻源明示仅 2 个美国机场直飞；TheCubaSource 称另有 FLL/ATL/JFK，冲突未核" data-grp="古巴"><td class="cn">纽约 ⇄ 哈瓦那</td><td><s>无</s></td><td>0</td><td>—</td><td>时刻源明示仅 2 个美国机场直飞；TheCubaSource 称另有 FLL/ATL/JFK，冲突未核</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="达拉斯" data-fo="圣马丁" data-direct="0" data-wk="0" data-cat="无直飞" data-note="达拉斯、休斯敦、洛杉矶、旧金山无直飞" data-grp="东加勒比"><td class="cn">达拉斯 ⇄ 圣马丁</td><td><s>无</s></td><td>0</td><td>—</td><td>达拉斯、休斯敦、洛杉矶、旧金山无直飞</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp gone" data-cn="达拉斯" data-fo="巴巴多斯" data-direct="0" data-wk="0" data-cat="无直飞" data-note="达拉斯、休斯敦、洛杉矶、旧金山、芝加哥无直飞" data-grp="东加勒比"><td class="cn">达拉斯 ⇄ 巴巴多斯</td><td><s>无</s></td><td>0</td><td>—</td><td>达拉斯、休斯敦、洛杉矶、旧金山、芝加哥无直飞</td><td><span class="mini">[S]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s8">八、2026 新开与停飞<span class="zh"></span></h2>
+
+<h3>新开</h3>
+<div class="tblwrap"><table class="wide" style="min-width:640px">
+<thead><tr><th>航线</th><th>承运人</th><th>起始</th><th>班次</th><th>源</th></tr></thead><tbody>
+<tr><td class="cn">华盛顿–洛斯卡沃斯</td><td>美联航（UA1104/1103，737 MAX 8）</td><td>2026-10-25</td><td>4/周 → 每日（12/19–1/3）</td><td>[S]</td></tr>
+<tr><td class="cn">瓜达拉哈拉–华盛顿 · –亚特兰大 · 普埃布拉–芝加哥 · 克雷塔罗–拉斯维加斯</td><td>Volaris</td><td>2026-12-01 · 12-02 · 12-02 · 12-04</td><td>3 · 4 · 3 · 2/周</td><td>[S]</td></tr>
+<tr><td class="cn">瓜达拉哈拉–底特律 · –盐湖城 · 普埃布拉–纽瓦克</td><td>Volaris</td><td>2026-06</td><td>3 · 3 · 4/周</td><td>[D]</td></tr>
+<tr><td class="cn">拉斯维加斯–坎昆 · –洛斯卡沃斯 · –巴亚尔塔港</td><td>西南</td><td>2026-06-04</td><td>坎昆 5/周，其余未核</td><td>[D]</td></tr>
+<tr><td class="cn">迈阿密–海地角</td><td>美航</td><td>2026-11-01</td><td>每日</td><td>[A]</td></tr>
+<tr><td class="cn">波士顿–拿骚 · –圣马丁 · –圣托马斯 · –利比里亚</td><td>捷蓝</td><td>2026-12-18</td><td>每日季节</td><td>[D]</td></tr>
+<tr><td class="cn">坦帕–蓬塔卡纳</td><td>捷蓝</td><td>2026-12-18</td><td>全年</td><td>[D]</td></tr>
+<tr><td class="cn">休斯敦–圣胡安</td><td>边疆</td><td>2026-12-17</td><td>每日</td><td>[D]</td></tr>
+<tr><td class="cn">迈阿密–圣胡安加密至 8 班/日 · 迈阿密–安提瓜 2 班/日</td><td>美航</td><td>2026 冬</td><td>—</td><td>[A]</td></tr>
+</tbody></table></div>
+<h3>停飞 / 砍减</h3>
+<ul class="clean">
+  <li><b>Spirit 全网 2026-05-02 停业</b>；此前 4 月已砍劳德代尔堡–大开曼/马那瓜/圣萨尔瓦多等 11 条。</li>
+  <li><b>阿拉斯加</b>：洛杉矶–坎昆、旧金山–坎昆、拉斯维加斯–巴亚尔塔港/洛斯卡沃斯、旧金山–洛雷托 2026 春陆续停，冬季不复飞。</li>
+  <li><b>墨航</b>：坎昆–迈阿密 5/1–8/16 停；瓜达拉哈拉–芝加哥/旧金山/萨克拉门托/弗雷斯诺 8/17–12/16 停；圣路易斯波托西–亚特兰大 5/1 起取消；AIFA–休斯敦/麦卡伦被交通部勒令停。</li>
+  <li><b>被交通部否决未恢复</b>：Volaris 墨西哥城–纽瓦克、墨航墨西哥城–圣胡安、Viva AIFA 飞九个美国城市。</li>
+  <li>美航凤凰城–蒙特雷 12/1 后无排班（载客率 60%）；奥斯汀–洛斯卡沃斯 11–12 月从 48 班砍到 4 班。Volaris 2025-10 撤出麦卡伦。</li>
+</ul>
+
+<h2 id="s9">九、口径<span class="zh">哪些能信，哪些不能</span></h2>
+
+<div class="callout"><div class="ch">口径</div>
+<ul class="clean">
+  <li><b>周班次＝FlightConnections 2026-09「本月到港班次」÷ 4.33</b>，每方向。9 月是淡季，冬季航季（10-25 起）坎昆/洛斯卡沃斯/加勒比会明显高于表里的数。</li>
+  <li>市场份额、总座位为 2026 夏季 Cirium/OAG 口径（双向座位）。</li>
+  <li>航班号仅 AeroRoutes 明示的美联航新线有，其余省略；时长仅 JFK–圣多明各（约 4h17）来自时刻源。</li>
+  <li>[A] 只有墨航 6-K 与美航新闻稿；[S] OAG 博客、AeroRoutes、FlightConnections；其余 [D]。</li>
+</ul></div>
+
+<div class="callout"><div class="ch">🔴 逐线票价一律未核，这是有意的</div>
+<p>近海度假线是全美价格波动最剧烈的市场，同一条线淡旺季差三倍。<b>要看某天的分布，用 Google Flights 的价格图表。</b></p></div>
+
+<div class="callout warncall"><div class="ch">已知未核项（不得当事实用）</div>
+<ul class="clean">
+  <li>前十城市对的<b>座位数</b>与航司分解（只有洛杉矶–瓜达拉哈拉一条有 Cirium 数字）。</li>
+  <li>各航线直飞时长（除 JFK–圣多明各）。</li>
+  <li>洛斯卡沃斯、蒙特雷、巴亚尔塔港多数门户的承运人明细。</li>
+  <li>美国门户飞 AIFA 的现存直飞明细；Viva 是否保留任何 AIFA–美国线。</li>
+  <li>达美/西南/阿拉斯加/捷蓝/边疆在美墨市场的份额；交通部腹舱货运禁令是否已生效；Volaris–Viva 合并审批进度。</li>
+  <li>古巴：TheCubaSource 所列西南劳德代尔堡–哈瓦那、达美亚特兰大/JFK–哈瓦那与时刻源「仅迈阿密/坦帕两口」冲突；美航迈阿密–哈瓦那「10 班/日」是 2 月数字。</li>
+  <li>坎昆纽瓦克门户美联航是否在飞；金斯顿除四口外的门户；加勒比航空 JFK 班次；美加勒比整体座位/份额。</li>
+</ul></div>
+
+<div class="note"><b>本页不做什么</b>：不比酒店 · 不比刷卡倍率 · 不排申卡。<b>南美</b>去《美南美航线》。
+<b>会过期的部分</b>：航季换季（每年 3 月底与 10 月底）会大改班次，<b>换季后必须重核</b>。</div>
+<footer>中国出发 · 美国出发 · 欧洲出发 三家族同一设计系统，与 <a href="https://chronicle.klay-wang.com">Market Chronicle</a> 同源 · 班次按每方向每周 · 逐线票价一律未核 · 换季重核</footer>
+</div>
+
+<script>
+var d=document.documentElement;
+try{var s=localStorage.getItem('fm-theme');if(s)d.setAttribute('data-theme',s);}catch(e){}
+/* 切换＝看板同款（源=访客看板.html←klay-site theme-toggle.js）：旋转+圆形揭示；钥匙仍是 fm-theme */
+(function(){var btn=document.getElementById('darkBtn');
+function set(t){d.setAttribute('data-theme',t);try{localStorage.setItem('fm-theme',t);}catch(e){}}
+btn.addEventListener('click',function(){
+  var next=d.getAttribute('data-theme')==='dark'?'light':'dark';
+  btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spin');
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce||typeof document.startViewTransition!=='function'){set(next);return;}
+  var r=btn.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+  var end=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+  document.startViewTransition(function(){set(next);}).ready.then(function(){
+    d.animate({clipPath:['circle(0px at '+x+'px '+y+'px)','circle('+end+'px at '+x+'px '+y+'px)']},
+      {duration:500,easing:'cubic-bezier(0.16, 1, 0.3, 1)',pseudoElement:'::view-transition-new(root)'});
+  }).catch(function(){});
+});})();
+/* 目录 */
+(function(){
+  var toc=document.getElementById('toc'),bk=document.getElementById('tocBack'),bt=document.getElementById('tocBtn');
+  var items=[].slice.call(toc.querySelectorAll('.toc-item'));
+  function close(){toc.classList.remove('open');bk.classList.remove('show');}
+  bt.addEventListener('click',function(){toc.classList.toggle('open');bk.classList.toggle('show');});
+  bk.addEventListener('click',close);
+  items.forEach(function(a){a.addEventListener('click',close);});
+  var hs=[].slice.call(document.querySelectorAll('[id^="s"]')).filter(function(e){return /^s\d$/.test(e.id);});
+  function spy(){
+    var cur=hs.length?hs[0].id:'';
+    hs.forEach(function(h){ if(h.getBoundingClientRect().top<130) cur=h.id; });
+    items.forEach(function(a){ a.classList.toggle('active',a.getAttribute('href')==='#'+cur); });
+  }
+  window.addEventListener('scroll',spy,{passive:true}); spy();
+})();
+
+</script>
+<script>/* 星空滚动淡出：看板同款 data-scrolled 开关 */
+addEventListener("scroll",function(){
+  if(scrollY>40){document.documentElement.setAttribute("data-scrolled","");}
+  else{document.documentElement.removeAttribute("data-scrolled");}
+},{passive:true});</script>
+<script>
+/* 流向图适配器：解析本页所有 tr.tp（data-cn / data-fo / data-direct / data-wk / data-cat），渲染走 FlowViz。
+   数据只有表格一份，改表即改图。 */
+(function(){
+  var root=document.getElementById('flow'); if(!root||!window.FlowViz) return;
+  var CAT={'美国航司':'var(--accent)','对方航司':'var(--teal,#00A86B)','无直飞':'var(--muted-soft,#9B8E7C)'};
+  var FOFLAG={'墨西哥城':'🇲🇽','坎昆':'🇲🇽','瓜达拉哈拉':'🇲🇽','洛斯卡沃斯':'🇲🇽','巴亚尔塔港':'🇲🇽','蒙特雷':'🇲🇽','蓬塔卡纳':'🇩🇴','圣多明各':'🇩🇴','圣胡安':'🇵🇷','蒙特哥贝':'🇯🇲','金斯顿':'🇯🇲','拿骚':'🇧🇸','阿鲁巴':'🇦🇼','哈瓦那':'🇨🇺','圣马丁':'🇸🇽','巴巴多斯':'🇧🇧'};
+  var OFLAG='🇺🇸', OGRP='美国', DGRP='墨西哥·加勒比';
+  function txt(td){ return (td.textContent||'').replace(/\s+/g,' ').trim(); }
+  function num(t){ var m=String(t).match(/\d[\d,]*/); return m?+m[0].replace(/,/g,''):0; }
+  var rows=[];
+  document.querySelectorAll('tr.tp').forEach(function(tr){
+    var td=tr.querySelectorAll('td'); if(td.length<3) return;
+    var cn=tr.getAttribute('data-cn'), fo=tr.getAttribute('data-fo'); if(!cn||!fo) return;
+    rows.push({cn:cn,fo:fo,direct:tr.getAttribute('data-direct')==='1',
+      wk:+(tr.getAttribute('data-wk')||0), cat:tr.getAttribute('data-cat')||'其他', grp:tr.getAttribute('data-grp')||'',
+      car:txt(td[1]),fq:txt(td[2]),dur:txt(td[3]||''),note:tr.getAttribute('data-note')||''});
+  });
+  if(!rows.length) return;
+  var dir='both', grp='';
+  var GRPS=[]; rows.forEach(function(r){ if(r.grp&&GRPS.indexOf(r.grp)<0) GRPS.push(r.grp); });
+  function tip(r,d){ return '<b>'+(d==='out'?r.cn+' → '+r.fo:r.fo+' → '+r.cn)+'</b>'+
+    (r.direct?'':'🔴 已退出 · ')+r.cat+(r.wk?' · '+r.wk+' 班/周（每方向）':'')+'<br>'+r.car+' · '+r.fq+
+    (r.dur&&r.dur!=='未核'?' · '+r.dur:'')+(r.note?'<br>'+r.note:''); }
+  function build(){
+    var legs=[];
+    rows.filter(function(r){ return !grp||r.grp===grp; }).forEach(function(r){
+      if(dir!=='in') legs.push({o:r.cn,d:r.fo,r:r,side:'out'});
+      if(dir!=='out') legs.push({o:r.fo,d:r.cn,r:r,side:'in'});
+    });
+    var O=[],D=[];
+    legs.forEach(function(l){ if(O.indexOf(l.o)<0)O.push(l.o); if(D.indexOf(l.d)<0)D.push(l.d); });
+    var isCN=function(x){ return rows.some(function(r){return r.cn===x;}); };
+    /* 先按国别分组（中国城市在前），组内再按航线数降序 —— 否则分组标签会来回跳 */
+    var srt=function(arr,k){ return function(a,b){ var ca=isCN(a),cb=isCN(b); if(ca!==cb) return ca?-1:1;
+      return arr.filter(function(l){return l[k]===b;}).length-arr.filter(function(l){return l[k]===a;}).length; }; };
+    O.sort(srt(legs,'o')); D.sort(srt(legs,'d'));
+    var nodes=[],edges=[];
+    O.forEach(function(o){ var ls=legs.filter(function(l){return l.o===o;}), dn=ls.filter(function(l){return l.r.direct;}).length;
+      nodes.push({id:'o:'+o,col:0,label:(isCN(o)?OFLAG+' ':(FOFLAG[o]||'')+' ')+o,sub:ls.length+' 条（直飞 '+dn+'）',group:isCN(o)?'— '+OGRP+'出发 —':'— '+DGRP+'出发 —'}); });
+    D.forEach(function(d){ var ls=legs.filter(function(l){return l.d===d;});
+      var w=ls.reduce(function(a,l){return a+(l.r.wk||0);},0);
+      nodes.push({id:'d:'+d,col:1,label:(isCN(d)?OFLAG+' ':(FOFLAG[d]||'')+' ')+d,sub:ls.length+' 条进港'+(w?' · '+w+' 班/周':''),group:isCN(d)?'— 飞往'+OGRP+' —':'— '+DGRP+' —'}); });
+    legs.forEach(function(l){ var w=Math.max(.6,(l.r.wk||1)/7);
+      edges.push({a:'o:'+l.o,b:'d:'+l.d,w:w,width:Math.max(1,Math.min(9,.9*w+1)),cat:l.r.cat,
+        color:CAT[l.r.cat]||'var(--muted)',dash:!l.r.direct,opacity:l.r.direct?.5:.32,tip:tip(l.r,l.side)}); });
+    return {id:'rf',W:1100,top:44,bottom:20,isolate:'touch',particleDiv:7,
+      cols:[{label:'出发',x:[40,244],kind:'card',h:38,gap:4,groupGap:16},
+            {label:'目的地（按航线数排）',x:[866,1064],kind:'card',h:34,gap:3,groupGap:16}],
+      legend:Object.keys(CAT).map(function(k){return {k:k,label:k,color:CAT[k]};}),
+      controls:[{type:'pills',label:'方向',options:[{v:'out',label:OGRP+'→'+DGRP},{v:'in',label:DGRP+'→'+OGRP},{v:'both',label:'双向'}],value:dir,
+                 onChange:function(v){dir=v;h.update(build());}}]
+        .concat(GRPS.length>1?[{type:'pills',label:'目的地',options:[{v:'',label:'全部'}].concat(GRPS.map(function(g){return {v:g,label:g};})),value:grp,
+                 onChange:function(v){grp=v;h.update(build());}}]:[])
+        .concat([{type:'legend',label:'承运方'},{type:'reset',onReset:function(){dir='both';grp='';h.update(build());}}]),
+      nodes:nodes,edges:edges,
+      note:function(st){ var nd=st.lit.filter(function(e){return !e.dash;}).length;
+        return '亮着 <b>'+st.lit.length+'</b> 条（直飞 '+nd+'）'+(st.sel?'，只看 <b>'+st.sel.slice(2)+'</b>':'')+
+        '。<b>线粗＝每周班次</b>，虚线＝需中转。班次按每方向计，两个方向相同。渲染＝FlowViz v'+FlowViz.version+'。'; }};
+  }
+  var h=FlowViz.embed(root,build()); window.rfFlow=h;
+})();
+</script>
+</body>
+</html>
