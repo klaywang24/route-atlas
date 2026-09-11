@@ -80,6 +80,7 @@ tools/build_region_page.py   →  <family>/<page>.html   (tables + flow-diagram 
 tools/build_index.py         →  index.html + 3 family indexes (world-flow diagram)
 tools/inject_flowviz.py      →  embeds the FlowViz runtime (version-pinned, --check on commit)
 tools/build_theme.py         →  injects the shared palette from theme.css (--check on commit)
+tools/record_flow_gif.py     →  records a page's live flow diagram to GIF for this README
       │
       ▼
 Static HTML: vanilla JS, no framework, day/night theme, floating TOC
