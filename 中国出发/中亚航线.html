@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中亚航线 · 九个目的地</title>
+<!-- THEME:START --><style id="fm-theme">
+/* 五件套共用的调色板。唯一实现，别在各文件里再写一份 :root。
+   改这里之后跑一次： python3 build_theme.py
+   （--check 只读比对，已挂 pre-commit）
+
+   为什么要有它：抽取之前这套色散在 5 份 HTML 里、三种不同形状（20/15/16 个变量），
+   而且已经漂了——万豪选择器与航司选择器的 accent-bg/gold-soft/teal-soft 三个
+   透明度值与另外两份不一致（.04 vs .05、.12 vs .14、.10 vs .12）。没人会发现。
+
+   深色三条规则的分工：
+     :root                                        亮色，基准
+     @media(prefers-color-scheme) :not([light])   跟随系统
+     :root[data-theme="dark"]                     手动切换，优先级最高
+   五份 HTML 都有手动开关（localStorage fm-theme，2026-08-17 起统一），设了值就走第三条；
+   没设值时跟随系统。同一把钥匙，任一页切换、五页同步。 */
+
+:root{
+ --bg:#F1ECDF;--bg-card:#EBE5D6;--bg-card-hover:#E5DECC;--bg-deep:#E0D8C2;
+ --ink:#1A1410;--ink-soft:#3D352D;--muted:#6B5D4F;--muted-soft:#9B8E7C;
+ --accent:#FF2400;--accent-deep:#CC1D00;--accent-soft:rgba(255,36,0,.08);--accent-bg:rgba(255,36,0,.04);
+ --gold:#B8893E;--gold-soft:rgba(184,137,62,.12);
+ --teal:#00A86B;--teal-soft:rgba(0,168,107,.10);
+ --moss:#00A86B;--moss-soft:rgba(0,168,107,.10);
+ --rule:#C8BFA8;--rule-soft:#D8D0BA;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}}
+:root[data-theme="dark"]{
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}
+</style><!-- THEME:END -->
+
+<script>/* 主题先定死 light/dark（看板同款：图标显隐靠 html[data-theme] 精确匹配，属性必须始终显式；也防 FOUC）。钥匙仍是 fm-theme。 */
+(function(){var d=document.documentElement,s=null;try{s=localStorage.getItem("fm-theme");}catch(e){}
+d.setAttribute("data-theme",s||((window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"));})();</script>
+<!-- flowviz:runtime v1.0.0 -->
+<style id="fv-css">
+.fv{position:relative}
+.fv .fv-wrap{position:relative;background:var(--bg-card,#f5f2ea);border:1px solid var(--rule,#c8bfa8);border-radius:10px;overflow:hidden}
+.fv svg{display:block;width:100%;height:auto}
+.fv canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.fv .fv-col{fill:var(--muted-soft,#9b8e7c);font-size:10px;letter-spacing:.14em;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-grp{fill:var(--muted-soft,#9b8e7c);font-size:10px;letter-spacing:.12em;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-edge{fill:none;stroke-linecap:butt;transition:stroke-opacity .2s;cursor:pointer}
+.fv .fv-edge.dash{stroke-dasharray:5 5}
+.fv .fv-edge.dim{stroke-opacity:.05!important}
+.fv .fv-node rect{cursor:pointer}
+.fv .fv-node.card rect{fill:var(--bg,#f1ecdf);stroke:var(--rule,#c8bfa8);rx:6}
+.fv .fv-node.bar rect{stroke:none}
+.fv .fv-node text{fill:var(--ink,#1a1410);font-size:11.5px;font-family:'Noto Sans SC','IBM Plex Sans',sans-serif;pointer-events:none;paint-order:stroke;stroke:var(--bg-card,#f5f2ea);stroke-width:3px;stroke-linejoin:round}
+.fv .fv-node.card text{stroke:none;font-weight:600;font-size:12px}
+.fv .fv-node text.sm{fill:var(--muted,#6b5d4f);font-size:10px;font-weight:400;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-node text.best{font-weight:700}
+.fv .fv-node.on rect{stroke:var(--accent,#a0392f);stroke-width:1.6}
+.fv .fv-node.dim rect,.fv .fv-node.dim text,.fv .fv-node.dim image{opacity:.28}
+.fv .fv-tip{position:absolute;pointer-events:none;background:var(--ink,#1a1410);color:var(--bg,#f1ecdf);font-size:12px;line-height:1.55;padding:7px 10px;border-radius:6px;max-width:330px;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:5}
+.fv .fv-tip b{display:block;font-size:12.5px;margin-bottom:2px}
+.fv .fv-ctl{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 8px;font-size:12px}
+.fv .fv-ctl .lab{color:var(--muted,#6b5d4f);margin-right:4px}
+.fv .fv-ctl .cp{display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:2px 9px;border:1px solid var(--rule,#c8bfa8);border-radius:999px;color:var(--ink-soft,#3d352d);background:var(--bg-card,#f5f2ea)}
+.fv .fv-ctl .cp.off{opacity:.32}
+.fv .fv-ctl .cp i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.fv .fv-ctl .cp i.d{background:repeating-linear-gradient(90deg,currentColor 0 3px,transparent 3px 6px)!important}
+.fv .fv-note{font-size:12.5px;color:var(--muted,#6b5d4f);line-height:1.7;margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){.fv canvas{display:none}}
+</style>
+<script id="fv-runtime" data-v="1.0.0">
+/* FlowViz embed runtime v1.0.0 —— 唯一实现，由 ~/.claude/skills/flow-viz/flowviz.py 注入，别手改（tools/inject_flowviz.py --check 会报） */
+(function(){
+  if(window.FlowViz && window.FlowViz.version==="1.0.0") return;
+  function el(t,a,p){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+  function embed(root, spec){
+    root.classList.add('fv'); root.innerHTML='';
+    var ctl=document.createElement('div'); ctl.className='fv-ctl'; root.appendChild(ctl);
+    var wrap=document.createElement('div'); wrap.className='fv-wrap'; root.appendChild(wrap);
+    var svg=el('svg',{xmlns:'http://www.w3.org/2000/svg'},wrap); var cv=document.createElement('canvas'); wrap.appendChild(cv);
+    var tip=document.createElement('div'); tip.className='fv-tip'; tip.hidden=true; wrap.appendChild(tip);
+    var note=document.createElement('p'); note.className='fv-note'; root.appendChild(note);
+    var S=null, nodes={}, edges=[], sel=null, catOff={}, parts=[], running=false, last=0, sc=1, dpr=1, W=1100, H=0;
+    var ctx=cv.getContext('2d');
+    function fit(){var r=svg.getBoundingClientRect();dpr=window.devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.width=r.width+'px';cv.style.height=r.height+'px';sc=r.width/W*dpr;}
+    function mv(ev){var b=wrap.getBoundingClientRect();var x=ev.clientX-b.left+12,y=ev.clientY-b.top+12;if(x>b.width-340)x-=360;tip.style.left=x+'px';tip.style.top=y+'px';}
+    function showTip(ev,html){if(!html){tip.hidden=true;return;}tip.innerHTML=html;tip.hidden=false;mv(ev);}
+    function colOf(n){return S.cols[n.col];}
+    function layout(){
+      W=S.W||1100; var top=S.top||34, bottom=S.bottom||20; nodes={}; var colH=[];
+      S.cols.forEach(function(c,ci){ var ns=S.nodes.filter(function(n){return n.col===ci;}); var y=top, lastG=null;
+        if(c.kind==='bar'){ var total=ns.reduce(function(a,n){return a+(n.cnt||0);},0)||1, n=ns.length, minH=c.minH||11, gap=c.gap||3;
+          var avail=(S.H||900)-top-bottom-gap*(n-1), extra=Math.max(0,avail-minH*n);
+          ns.forEach(function(nd){ var h=minH+extra*(nd.cnt||0)/total; nodes[nd.id]={n:nd,x0:c.x[0],x1:c.x[1],y0:y,y1:y+h,cnt:nd.cnt||0,off0:0,off1:0}; y+=h+gap; });
+        } else { var h=c.h||40, gap=c.gap||10, gg=c.groupGap||18;
+          ns.forEach(function(nd){ if(nd.group!==undefined&&lastG!==null&&nd.group!==lastG) y+=gg; if(nd.group!==undefined) lastG=nd.group;
+            nodes[nd.id]={n:nd,x0:c.x[0],x1:c.x[1],y0:y,y1:y+h,cnt:nd.cnt||0,off0:0,off1:0}; y+=h+gap; }); }
+        colH.push(y+bottom); });
+      H=Math.max.apply(null,colH.concat([S.H||0]));
+      S.cols.forEach(function(c,ci){ if(c.kind==='bar'||c.center===false) return; var ns=S.nodes.filter(function(n){return n.col===ci;}); if(!ns.length) return; var y0=nodes[ns[0].id].y0, y1=nodes[ns[ns.length-1].id].y1; var d=(H-bottom-(y1-y0))/2-y0+top/2; if(d>0) ns.forEach(function(n){nodes[n.id].y0+=d;nodes[n.id].y1+=d;}); });
+    }
+    function litEdge(e){ if(e.lit===false) return false; if(e.cat&&catOff[e.cat]) return false;
+      if(sel){ if(S.isolate==='path') return !!e._path; return e.a===sel||e.b===sel; } return true; }
+    function markPath(){ edges.forEach(function(e){e._path=false;}); if(!sel||S.isolate!=='path') return;
+      var ok=function(e){return !(e.cat&&catOff[e.cat])&&e.lit!==false;};
+      var q=[sel], seen={}; seen[sel]=1; while(q.length){ var id=q.shift(); edges.forEach(function(e){ if(ok(e)&&e.a===id&&!e._path){ e._path=true; if(!seen[e.b]){seen[e.b]=1;q.push(e.b);} } }); }
+      q=[sel]; seen={}; seen[sel]=1; while(q.length){ var id2=q.shift(); edges.forEach(function(e){ if(ok(e)&&e.b===id2&&!e._path){ e._path=true; if(!seen[e.a]){seen[e.a]=1;q.push(e.a);} } }); } }
+    function render(){
+      layout(); edges=S.edges.slice(); markPath();
+      var h='';
+      S.cols.forEach(function(c){ if(!c.label) return; var left=c.labelSide==='left'; h+='<text class="fv-col" x="'+(left?c.x[1]:c.x[0])+'" y="'+((S.top||34)-16)+'" text-anchor="'+(left?'end':'start')+'">'+esc(c.label)+'</text>'; });
+      S.cols.forEach(function(c,ci){ var ns=S.nodes.filter(function(n){return n.col===ci;}); var lastG=null; ns.forEach(function(nd){ if(nd.group!==undefined&&nd.group!==lastG&&lastG!==null){ var p=nodes[nd.id]; h+='<text class="fv-grp" x="'+(c.labelSide==='left'?p.x1+8:p.x0)+'" y="'+(p.y0-6)+'">'+esc(nd.group)+'</text>'; } if(nd.group!==undefined) lastG=nd.group; }); });
+      edges.forEach(function(e){ var A=nodes[e.a], B=nodes[e.b]; if(!A||!B){ e._x0=null; return; } var ca=colOf(A.n), cb=colOf(B.n);
+        if(ca.kind==='bar'){ var hs=(A.y1-A.y0)*(e.w||0)/(A.cnt||1); e._ys=A.y0+A.off0+hs/2; e._hs=hs; A.off0+=hs; } else { e._ys=(A.y0+A.y1)/2; e._hs=null; }
+        if(cb.kind==='bar'){ var ht=(B.y1-B.y0)*(e.w||0)/(B.cnt||1); e._yt=B.y0+B.off1+ht/2; e._ht=ht; B.off1+=ht; } else { e._yt=(B.y0+B.y1)/2; e._ht=null; }
+        e._x0=A.x1+2; e._x1=B.x0-2;
+        e._w=e.width!=null?e.width:((e._hs!=null||e._ht!=null)?Math.max(.8,((e._hs!=null?e._hs:e._ht)+(e._ht!=null?e._ht:e._hs))/2):Math.max(1,Math.min(9,.45*(e.w||1)+.8))); });
+      var sorted=edges.slice().sort(function(a,b){ var la=litEdge(a)?1:0, lb=litEdge(b)?1:0; if(la!==lb) return la-lb; return ((b.rank||99)-(a.rank||99)); });
+      sorted.forEach(function(e){ if(e._x0==null) return; var cx=(e._x0+e._x1)/2, lit=litEdge(e); var A=nodes[e.a]; var op=e.opacity!=null?e.opacity:(colOf(A.n).kind==='bar'?.34:.5);
+        h+='<path class="fv-edge'+(e.dash?' dash':'')+(lit?'':' dim')+'" data-i="'+edges.indexOf(e)+'" d="M'+e._x0+' '+e._ys.toFixed(1)+' C'+cx+' '+e._ys.toFixed(1)+' '+cx+' '+e._yt.toFixed(1)+' '+e._x1+' '+e._yt.toFixed(1)+'" stroke="'+(e.color||'var(--rule)')+'" stroke-opacity="'+(lit?op:.05)+'" stroke-width="'+e._w.toFixed(2)+'"></path>'; });
+      var touched={}; edges.forEach(function(e){ if(e._x0!=null&&litEdge(e)){touched[e.a]=1;touched[e.b]=1;} });
+      var filtering=sel||Object.keys(catOff).some(function(k){return catOff[k];});
+      S.nodes.forEach(function(nd){ var p=nodes[nd.id], c=colOf(nd), card=c.kind!=='bar', dim=nd.dim||(filtering&&!touched[nd.id]&&nd.id!==sel);
+        h+='<g class="fv-node '+(card?'card':'bar')+(nd.id===sel?' on':'')+(dim?' dim':'')+'" data-id="'+esc(nd.id)+'">';
+        if(card){ h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'"'+(nd.color?' style="stroke:'+nd.color+'"':'')+'></rect>';
+          var tx=p.x0+10, my=(p.y0+p.y1)/2; if(nd.logo){ h+='<image href="'+nd.logo+'" x="'+(p.x0+9)+'" y="'+(my-11)+'" width="22" height="22"></image>'; tx=p.x0+38; }
+          if(nd.icon){ h+='<text x="'+(p.x0+10)+'" y="'+(my+4.5)+'" font-size="12" style="stroke:none">'+nd.icon+'</text>'; tx=p.x0+30; }
+          h+='<text x="'+tx+'" y="'+(nd.sub?my-3:my+4)+'">'+esc(nd.label)+'</text>'; if(nd.sub) h+='<text class="sm" x="'+tx+'" y="'+(my+12)+'">'+esc(nd.sub)+'</text>';
+          if(nd.best){ if(nd.bestLogo) h+='<image href="'+nd.bestLogo+'" x="'+(p.x1-8-(nd.bestW||60)-18)+'" y="'+(my-7)+'" width="14" height="14"></image>'; h+='<text class="best" x="'+(p.x1-8)+'" y="'+(my+4)+'" text-anchor="end"'+(nd.bestColor?' style="fill:'+nd.bestColor+'"':'')+'>'+esc(nd.best)+'</text>'; }
+        } else { h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'" fill="'+(nd.color||'var(--muted)')+'" opacity=".85"></rect>';
+          var side=c.labelSide||'right', lx=side==='left'?p.x0-7:p.x1+7;
+          h+='<text x="'+lx+'" y="'+((p.y0+p.y1)/2+4)+'" text-anchor="'+(side==='left'?'end':'start')+'">'+esc(nd.label)+(nd.cnt!=null?' <tspan class="sm">'+nd.cnt+'</tspan>':'')+'</text>'; }
+        h+='</g>'; });
+      svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML=h;
+      var byId={}; S.nodes.forEach(function(n){byId[n.id]=n;});
+      svg.querySelectorAll('.fv-node').forEach(function(g){ var id=g.getAttribute('data-id'), nd=byId[id];
+        g.addEventListener('click',function(){ if(S.isolate==='none') return; sel=(sel===id?null:id); render(); if(S.onSelect) S.onSelect(sel); });
+        g.addEventListener('mouseenter',function(ev){ if(nd&&nd.tip) showTip(ev,nd.tip); }); g.addEventListener('mousemove',mv); g.addEventListener('mouseleave',function(){tip.hidden=true;}); });
+      svg.querySelectorAll('.fv-edge').forEach(function(p){ var e=edges[+p.getAttribute('data-i')];
+        p.addEventListener('mouseenter',function(ev){ if(e.tip) showTip(ev,e.tip); }); p.addEventListener('mousemove',mv); p.addEventListener('mouseleave',function(){tip.hidden=true;}); });
+      note.innerHTML=typeof S.note==='function'?S.note({sel:sel,catOff:catOff,lit:edges.filter(litEdge)}):(S.note||'');
+      renderCtl(); setupParts(); fit(); requestAnimationFrame(fit);
+    }
+    function renderCtl(){ ctl.innerHTML=''; (S.controls||[]).forEach(function(c){
+      if(c.type==='legend'){ if(c.label){var lab=document.createElement('span'); lab.className='lab'; lab.textContent=c.label; ctl.appendChild(lab);}
+        (S.legend||[]).forEach(function(L){ var s=document.createElement('span'); s.className='cp'+(catOff[L.k]?' off':''); s.innerHTML='<i class="'+(L.dash?'d':'')+'" style="background:'+L.color+';color:'+L.color+'"></i>'+esc(L.label); s.addEventListener('click',function(){ catOff[L.k]=!catOff[L.k]; render(); }); ctl.appendChild(s); }); }
+      else if(c.type==='pills'){ if(c.label){var lab2=document.createElement('span'); lab2.className='lab'; lab2.textContent=c.label; ctl.appendChild(lab2);}
+        c.options.forEach(function(o){ var b=document.createElement('button'); b.className='pill'+(o.v===c.value?' on':''); b.textContent=o.label; b.addEventListener('click',function(){ c.value=o.v; if(c.onChange) c.onChange(o.v); }); ctl.appendChild(b); }); }
+      else if(c.type==='reset'){ var r=document.createElement('button'); r.className='pill'; r.style.marginLeft='auto'; r.textContent=c.label||'重置'; r.addEventListener('click',function(){ sel=null; catOff={}; if(c.onReset) c.onReset(); render(); }); ctl.appendChild(r); }
+      else if(c.type==='html'){ var d=document.createElement('span'); d.innerHTML=c.html; ctl.appendChild(d); } }); }
+    function setupParts(){ parts=[]; if(S.particles===false) return; svg.querySelectorAll('.fv-edge:not(.dim):not(.dash)').forEach(function(p){ var e=edges[+p.getAttribute('data-i')]; var n=Math.min(6,Math.max(1,Math.round((e.w||1)/(S.particleDiv||7)))); var col=getComputedStyle(p).stroke; for(var i=0;i<n;i++) parts.push({p:p,len:p.getTotalLength(),t:Math.random(),sp:0.00008+Math.random()*0.00005,col:col}); }); }
+    function frame(ts){ if(!running) return; var dt=Math.min(40,ts-(last||ts)); last=ts; ctx.clearRect(0,0,cv.width,cv.height);
+      parts.forEach(function(pt){ pt.t=(pt.t+pt.sp*dt)%1; ctx.fillStyle=pt.col; for(var k=0;k<4;k++){ var tt=pt.t-k*.012; if(tt<0) continue; var q=pt.p.getPointAtLength(tt*pt.len); ctx.globalAlpha=.9*(1-k*.22); ctx.beginPath(); ctx.arc(q.x*sc,q.y*sc,(2.6-k*.4)*dpr,0,Math.PI*2); ctx.fill(); } });
+      ctx.globalAlpha=1; requestAnimationFrame(frame); }
+    var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduce&&'IntersectionObserver' in window){ new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ if(!running){running=true;last=0;requestAnimationFrame(frame);} } else running=false; }); },{threshold:.05}).observe(wrap); }
+    window.addEventListener('resize',fit);
+    var api={update:function(sp){ S=sp; render(); return api; }, select:function(id){ sel=id; render(); }, state:function(){ return {sel:sel,catOff:catOff}; }, reset:function(){ sel=null; catOff={}; render(); }, el:root};
+    return api.update(spec);
+  }
+  window.FlowViz={version:"1.0.0", embed:embed};
+})();
+</script>
+<!-- /flowviz:runtime -->
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans SC',-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+  font-size:16.5px;line-height:1.92;-webkit-font-smoothing:antialiased;padding:36px 18px 60px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-family:Georgia,'Songti SC',serif;font-size:clamp(25px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.15}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{font-size:13px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em;margin:6px 0 18px}
+h2{font-family:Georgia,'Songti SC',serif;font-size:22px;font-weight:600;margin:38px 0 6px;scroll-margin-top:18px}
+h2 .zh{font-size:14px;color:var(--muted);font-weight:400;margin-left:10px}
+h3{font-size:16px;margin:22px 0 8px}
+.kicker{font-size:13px;color:var(--muted);margin:0 0 14px}
+.kicker b,.kicker strong{color:var(--ink)}
+#tocBtn{position:fixed;top:14px;left:14px;z-index:170;width:38px;height:38px;border-radius:999px;line-height:1;
+  border:1px solid var(--rule);background:var(--bg-card);color:var(--ink);font-size:15px;cursor:pointer}
+#darkBtn{position:fixed;top:14px;right:14px;z-index:170;width:38px;height:38px;border-radius:999px;line-height:1;
+  border:1px solid var(--rule);background:var(--bg-card);color:var(--ink);font-size:15px;cursor:pointer}
+.toc-sidebar{position:fixed;top:0;left:-236px;width:220px;height:100vh;background:var(--bg-card);border-right:1px solid var(--rule);
+  z-index:160;padding:22px 12px;transition:left .28s;overflow-y:auto}
+.toc-sidebar.open{left:0}
+.toc-brand{font-family:Georgia,serif;font-size:22px;font-weight:700;padding:0 10px}
+.toc-brand .dot{color:var(--accent)}
+.toc-zh{font-size:12px;color:var(--muted);padding:0 10px;margin-bottom:14px}
+.toc-item{display:block;padding:7px 10px;border-radius:7px;color:var(--ink-soft);text-decoration:none;font-size:13.5px;margin:2px 0}
+.toc-item:hover{background:var(--bg-deep);color:var(--accent)}
+.toc-item.active{background:var(--accent);color:#fff;font-weight:600}
+.toc-item .tn{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--muted-soft);margin-right:8px;letter-spacing:.05em}
+.toc-item.active .tn{color:rgba(255,255,255,.72)}
+.toc-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:155;opacity:0;pointer-events:none;transition:opacity .3s}
+.toc-backdrop.show{opacity:1;pointer-events:auto}
+@media(min-width:1200px){body{padding-left:236px}.toc-sidebar{left:0}#tocBtn{display:none}}
+/* ── 胶囊分段控件（2026-08-24 统一：母版＝房券去哪儿住.html·Klay 08-17 选定的那套）
+   原实现是「一颗一颗独立药丸」（各自带边框、gap 8px、选中填 accent）；
+   母版是「一条分段控件」：外层一个底槽，内层无边框，选中靠 bg-card 抬升。
+   只换样式不动 class 名与 DOM，JS 的 .on 切换逻辑原样可用。 ── */
+.pills{display:inline-flex;gap:0;flex-wrap:wrap;background:var(--bg-deep);
+  border:1px solid var(--rule);border-radius:10px;padding:3px;margin:14px 0 16px;
+  max-width:100%;overflow-x:auto;vertical-align:middle}
+.pill{font:inherit;font-size:14px;padding:7px 16px;border-radius:7px;cursor:pointer;
+  background:transparent;color:var(--ink-soft);border:none;transition:.14s;white-space:nowrap}
+.pill:hover{color:var(--ink)}
+.pill.on{background:var(--bg-card);color:var(--ink);font-weight:700;
+  box-shadow:0 1px 3px rgba(0,0,0,.13)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;background:var(--bg-card);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+th{background:var(--bg-deep);color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.05em;text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.ok{color:var(--moss);font-weight:600}
+.warn{color:var(--gold);font-weight:600}
+.chipset{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11.5px;color:var(--ink-soft);border:1px solid var(--rule);border-radius:6px;padding:1px 8px;white-space:nowrap;background:var(--bg)}
+img.lgo{width:18px;height:18px;border-radius:4px;background:#fff;padding:2px;vertical-align:-4px;margin-right:6px}
+.mk{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.08em;border:1.5px solid var(--ink-soft);color:var(--ink-soft);
+  border-radius:4px;padding:0 5px;margin-right:6px;vertical-align:1px;font-family:Georgia,serif}
+.callout{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0;font-size:14px}
+.callout b{color:var(--accent-deep)}
+.note{margin-top:30px;font-size:13px;color:var(--muted);border-left:3px solid var(--rule);padding-left:14px}
+.note li{margin:4px 0 4px 16px}
+.mxt td.mx{text-align:center;font-weight:700}
+.mxt th,.mxt td{border:1px solid var(--rule-soft)}
+.mxt .gb{border-left:2px solid var(--rule)}
+.mxt th[colspan]{text-align:center}
+.mxt .dim{color:var(--muted-soft)}
+.mxt th.bh{font-size:11px;letter-spacing:0}
+.mxt td.cityjump{cursor:pointer;font-weight:600;color:var(--accent);white-space:nowrap}
+.mxt td.cityjump:hover{text-decoration:underline}
+.citypanel{display:none}
+.citypanel.on{display:block}
+.bo{font-size:13px;color:var(--muted);margin:8px 0 0}
+.bo b{color:var(--gold)}
+.cityintro{font-size:13.5px;color:var(--ink-soft);margin:2px 0 10px}
+footer{margin-top:44px;font-size:12px;color:var(--muted-soft);border-top:1px solid var(--rule);padding-top:14px}
+
+/* 日/夜切换＝访客看板同款（2026-08-26 移植，源=访客数据/访客看板.html←klay-site theme-toggle）：
+   太阳/月亮图标 + 按下回弹 + 图标旋转 + 圆形揭示。图标显隐靠 html[data-theme] 精确匹配，
+   属性由 head 内联脚本保证始终显式写 light/dark。 */
+html[data-theme="light"] .icon-sun{display:none}
+html[data-theme="dark"] .icon-moon{display:none}
+#darkBtn{display:inline-flex;align-items:center;justify-content:center}
+#darkBtn svg{transition:transform .2s cubic-bezier(.16,1,.3,1)}
+#darkBtn.spin svg{animation:icon-swap .5s cubic-bezier(.16,1,.3,1)}
+#darkBtn:active{transform:scale(.94)}
+@keyframes icon-swap{from{transform:rotate(-120deg) scale(.5);opacity:.3}to{transform:rotate(0) scale(1);opacity:1}}
+/* 圆形揭示：关掉浏览器默认淡入，只留 clip-path 那个圆 */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:0}
+::view-transition-new(root){z-index:1}
+@media (prefers-reduced-motion:reduce){#darkBtn.spin svg{animation:none}}
+
+/* 夜晚星空＝访客看板同款（2026-08-26 移植，源=访客数据/访客看板.html←klay-site globals.css §16）：
+   只在夜间亮，错峰淡入+闪烁，铺顶部一带，滚动后整块淡出；纯装饰不挡点击。
+   与母版唯一差异：z-index:-1（母版 z:0 再抬 .wrap；本站六页容器各异，负 z 一条搞定，
+   星星画在 body 背景之上、所有内容之下，效果同款）。 */
+.starfield{position:fixed;left:0;right:0;top:0;height:340px;overflow:hidden;pointer-events:none;z-index:-1}
+.star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:0;
+box-shadow:0 0 3px 1px rgba(255,255,255,.45);transition:opacity .5s ease;
+animation:twinkle 3.2s ease-in-out infinite;animation-play-state:paused}
+html[data-theme="dark"] .star{opacity:.85;animation-play-state:running}
+html[data-scrolled] .starfield{opacity:0;transition:opacity .3s ease}
+.star:nth-child(1){top:22%;left:14%;transition-delay:0.05s;animation-delay:0s}
+.star:nth-child(2){top:62%;left:24%;transition-delay:0.18s;animation-delay:0.7s}
+.star:nth-child(3){top:30%;left:38%;transition-delay:0.11s;animation-delay:0.3s}
+.star:nth-child(4){top:70%;left:52%;transition-delay:0.3s;animation-delay:1.1s}
+.star:nth-child(5){top:18%;left:60%;transition-delay:0.22s;animation-delay:0.5s}
+.star:nth-child(6){top:55%;left:72%;transition-delay:0.4s;animation-delay:0.9s}
+.star:nth-child(7){top:26%;left:84%;transition-delay:0.15s;animation-delay:0.2s}
+.star:nth-child(8){top:74%;left:90%;transition-delay:0.34s;animation-delay:1.3s}
+.star:nth-child(9){top:44%;left:47%;transition-delay:0.26s;animation-delay:0.6s}
+.star:nth-child(10){top:58%;left:6%;transition-delay:0.08s;animation-delay:0.4s}
+.star:nth-child(11){top:16%;left:30%;transition-delay:0.37s;animation-delay:1s}
+.star:nth-child(12){top:66%;left:34%;transition-delay:0.13s;animation-delay:1.5s}
+.star:nth-child(13){top:34%;left:8%;transition-delay:0.44s;animation-delay:0.15s}
+.star:nth-child(14){top:78%;left:18%;transition-delay:0.2s;animation-delay:0.85s}
+.star:nth-child(15){top:40%;left:66%;transition-delay:0.47s;animation-delay:1.7s}
+.star:nth-child(16){top:12%;left:78%;transition-delay:0.09s;animation-delay:0.45s}
+.star:nth-child(17){top:64%;left:95%;transition-delay:0.28s;animation-delay:1.2s}
+.star:nth-child(18){top:36%;left:93%;transition-delay:0.5s;animation-delay:0.05s}
+@keyframes twinkle{0%,100%{transform:scale(1);box-shadow:0 0 3px 1px rgba(255,255,255,.4)}
+50%{transform:scale(1.6);box-shadow:0 0 6px 2px rgba(255,255,255,.75)}}
+@media (prefers-reduced-motion: reduce){html[data-theme="dark"] .star{animation:none;opacity:.7}}
+</style>
+<style>
+/* 区域航线页专用（三张共用，生成器唯一实现） */
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+td.num,th.num{text-align:right;font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.mini{font-size:11.5px;color:var(--muted);display:block;line-height:1.5}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:5px;padding:1px 7px;white-space:nowrap}
+.b-ok{background:var(--moss-soft);color:var(--moss);border:1px solid var(--moss)}
+.b-warn{background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold)}
+.b-err{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.b-neu{background:var(--bg-deep);color:var(--muted);border:1px solid var(--rule)}
+tr.gone td{opacity:.62}
+tr.gone td:first-child{opacity:1}
+.tblwrap{overflow-x:auto;margin:12px 0}
+table.wide{min-width:940px}
+.cn{font-weight:600;white-space:nowrap}
+ul.clean{list-style:none;margin:12px 0}
+ul.clean li{position:relative;padding-left:15px;margin:8px 0;font-size:14.5px;line-height:1.85}
+ul.clean li:before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--rule)}
+.callout.okcall{background:var(--moss-soft);border-left-color:var(--moss)}
+.callout.okcall b{color:var(--moss)}
+.callout.warncall{background:var(--gold-soft);border-left-color:var(--gold)}
+.callout.warncall b{color:var(--gold)}
+#flow{margin:14px 0 6px}
+/* 家族切换条（三家族互相倒流的第一层） */
+.fam{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 18px;font-size:13px}
+.fam a{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid var(--rule);
+  background:var(--bg-card);color:var(--ink-soft);text-decoration:none;transition:.14s}
+.fam a:hover{border-color:var(--accent);color:var(--accent)}
+.fam a.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.fam .sep{color:var(--muted-soft);margin:0 2px}
+.fam .idx{margin-left:auto;color:var(--muted);font-size:12px}
+.mirror{display:inline-block;margin:0 0 6px 2px;font-size:13px;color:var(--accent);text-decoration:none;border-bottom:1px dashed var(--accent)}
+.mirror:hover{border-bottom-style:solid}
+</style>
+<body>
+<div class="starfield" aria-hidden="true"><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span></div>
+<button id="tocBtn" title="目录">☰</button>
+<button id="darkBtn" title="暗/亮" aria-label="Toggle dark mode"><svg class="icon-sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg><svg class="icon-moon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M20.6 14.6A8.6 8.6 0 0 1 9.4 3.4 9 9 0 1 0 20.6 14.6z"/></svg></button>
+<aside class="toc-sidebar" id="toc">
+  <div class="toc-brand">Eastbound<span class="dot">.</span></div>
+  <div class="toc-zh">中亚航线</div>
+  <a class="toc-item" href="#s1"><span class="tn">I</span>格局 · 四种处境</a>
+  <a class="toc-item" href="#s2"><span class="tn">II</span>流向图</a>
+  <a class="toc-item" href="#s3"><span class="tn">III</span>韩国</a>
+  <a class="toc-item" href="#s4"><span class="tn">IV</span>日本 · 日方航司</a>
+  <a class="toc-item" href="#s5"><span class="tn">V</span>日本 · 中方航司</a>
+  <a class="toc-item" href="#s6"><span class="tn">VI</span>泰国</a>
+  <a class="toc-item" href="#s7"><span class="tn">VII</span>越南</a>
+  <a class="toc-item" href="#s8"><span class="tn">VIII</span>马来西亚</a>
+  <a class="toc-item" href="#s9"><span class="tn">IX</span>印尼</a>
+  <a class="toc-item" href="#s10"><span class="tn">X</span>新加坡</a>
+  <a class="toc-item" href="#s11"><span class="tn">XI</span>迪拜</a>
+  <a class="toc-item" href="#s12"><span class="tn">XII</span>多哈</a>
+  <a class="toc-item" href="#s13"><span class="tn">XIII</span>枢纽 · 迪拜 vs 多哈</a>
+  <a class="toc-item" href="#s14"><span class="tn">XIV</span>签证</a>
+  <a class="toc-item" href="#s15"><span class="tn">XV</span>口径与未核</a>
+</aside>
+<div class="toc-backdrop" id="tocBack"></div>
+
+<div class="wrap">
+<nav class="fam"><a class="on" href="index.html">🇨🇳 中国出发</a><span class="sep">·</span><a href="../美国出发/index.html">🇺🇸 美国出发</a><span class="sep">·</span><a href="../欧洲出发/index.html">🇪🇺 欧洲出发</a><a class="idx" href="../index.html">全站首页 ↗</a></nav><h1>中亚航线 · <em>九地，四种处境</em></h1>
+<div class="sub">CHINA ⇄ 韩 日 泰 越 马 印尼 新 迪拜 多哈 · 2026-09-10</div>
+<div class="kicker">九个目的地，四种处境：<b>韩国成了中国第一大国际市场，中日被政治砍了一半，海湾被战争打断，东南亚按签证分化。</b>与《美国航司选择器》《中欧航线》同一套设计。🔴 <b>班次一律单方向/周；日本中方航司是计划口径，实飞取消率三成。</b></div>
+
+<h2 id="s1">一、格局<span class="zh">九个目的地，四种处境</span></h2>
+<div class="kicker">先看这一节。同一个「亚洲」，四个方向的处境毫无关系。</div>
+
+<div class="callout okcall"><div class="ch">🇰🇷 韩国：中国第一大国际航空市场，七年来首次扩航权</div>
+<ul class="clean">
+  <li><b>2026-09 中国出境座位：韩国 112 万（+26.1%）居第一</b>，香港 73.2 万、泰国 60.0 万、日本 56.8 万（−44.3%）。OAG 口径。</li>
+  <li>中韩 2026 夏季双向座位 1,430 万（+14.2%）；Q1 客运 440 万超过 2019 年；27 家航司运营，大韩 18.5%、韩亚 15%、东航 14.4%、南航 11.6%、国航 7.2%。</li>
+  <li><b>双边航权 2026-05 七年来首扩</b>：总 662→732 班/周，仁川–北京 45→52、仁川–上海 56→63、韩国二线机场 87→101。</li>
+  <li>最密城市对：<b>仁川–浦东 · 仁川–青岛 · 济州–浦东</b>，第三对由 LCC 主导。大韩与韩亚 2026-12-17 完成合并，NW26 起多条中国线换 KE 号。</li>
+  <li>签证：中国对韩单方面免签 30 天延至 2026-12-31；韩国对中国团客免签 15 天，⚠️ <b>延期至年底只见韩文媒体引总理表态，法务部页面未改，待官方复核</b>。</li>
+</ul></div>
+
+<div class="callout"><div class="ch">🇯🇵 日本：政治砍了一半，到 2027 年 3 月都不会恢复</div>
+<ul class="clean">
+  <li>2025-11 高市早苗涉台言论后中方发出赴日提醒，航司大面积停飞。<b>2026 夏秋航季中日客运 597 班/周，较上年同期减 53%</b>。JNTO：2026-05 中国大陆赴日减 60.4%。</li>
+  <li>7 月、8 月实际取消率仍 31.4%、30.1%；8 月有 <b>18 条航线「计划有班、实飞为零」</b>。🔴 <b>全日空冬季停航清单与夏季完全一致</b>，到 2027-03 都没恢复。</li>
+  <li><b>2026-07-01 起日本签证费涨五倍</b>，单次 145→715 元。</li>
+</ul></div>
+
+<div class="callout warncall"><div class="ch">🇦🇪🇶🇦 海湾：2026-02-28 起被战争打断，分批复航中</div>
+<ul class="clean">
+  <li>伊朗打击卡塔尔、迪拜机场 3/7 停摆。阿联酋航空 8 月座位恢复 93%；卡航 6/16 恢复 85%。</li>
+  <li>🔴 <b>南航全部中东航线预订关闭至 2027-03-27。</b>阿提哈德 2026-10 起新增上海、广州、成都、杭州、深圳五线，海湾对华门户在换手。</li>
+</ul></div>
+
+<div class="callout"><div class="ch">🇹🇭🇻🇳🇲🇾🇮🇩🇸🇬 东南亚：按签证分化</div>
+<ul class="clean">
+  <li><b>免签的三家在扩</b>：泰国永久互免（但 <b>2026-09-15 起免签停留 60 天缩至 30 天</b>）、马来西亚互免 2025-07-17 生效、新加坡互免 2024-02-09。中泰最密的对是浦东–曼谷 101 班、广州–曼谷 98 班；中马广州–吉隆坡 89 班、浦东–吉隆坡 73 班。</li>
+  <li><b>要签证的两家平淡</b>：越南对华无免签（富国岛除外），走电子签；印尼落地签约 32 美元。中越最密是浦东–河内 50、广州–河内 49、广州–胡志明 49；<b>岘港当周无大陆定期直飞</b>，与此前报道不符，未核。</li>
+  <li>新加坡：中国连续第二年为樟宜最大市场，新航复飞杭州、酷航加贵阳。</li>
+  <li><b>LCC 角色</b>：春秋是中韩中泰的主力，泰亚航与泰狮航<b>只飞廊曼</b>，亚航广州每日 3–4 班，越捷自称中越 130 条。2026-09 东南亚 LCC 座位份额 44%（同比 −3.3%），亚航 Q3 运力削 20–25% 归因航油与汇兑。</li>
+</ul></div>
+
+<h2 id="s2">二、流向图<span class="zh">城市 → 城市，线粗＝班次，可按目的地筛</span></h2>
+<div class="kicker"><b>红线＝中国航司，绿线＝对方航司，灰虚线＝已停飞。</b>183 条线太密，<b>用「目的地」那排按钮按国筛</b>。🔴 韩泰越马印尼那五国的班次是<b>中→目的地单向、当周计划、单一聚合库</b>，与日本新加坡海湾那批口径不同，线粗只能相对着看。</div>
+<div id="flow"></div>
+
+<h2 id="s3">三、韩国<span class="zh">仁川 · 金浦 · 济州 · 釜山</span></h2>
+<div class="kicker">🔴 <b>本表班次＝中→韩单向、2026-09 第 2 周计划、flightsfrom 单一源</b>，含 KE2xxx／OZ3xxx 号段的行可能计入代码共享，<b>视为上限</b>。2026 新开的韩国二线机场线（丽江–仁川、昆明–清州、浦东–清州加班、仁川–宜昌、大邱–张家界）班次未核，未入表。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="上海" data-fo="首尔仁川" data-direct="1" data-wk="112" data-cat="中国航司" data-note="<b>中韩运力第一城市对</b>；双边上限 56→63 班/周；NW26 大韩换 777-300ER／787-10" data-grp="韩国"><td class="cn">上海 ⇄ 首尔仁川</td><td>东航 MU5011 等 · 韩亚 OZ · 大韩 KE882/888/892 · 南航 CZ313/369 · 上航 FM827 · 春秋 9C8559 · 易斯达 ZE</td><td><b>112</b>（7 家）</td><td>1h40–2h15</td><td><b>中韩运力第一城市对</b>；双边上限 56→63 班/周；NW26 大韩换 777-300ER／787-10</td><td><span class="mini">[C] AvWeek 06-04；[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="首尔金浦" data-direct="1" data-wk="28" data-cat="中国航司" data-note="KE2058/OZ3625 疑代码共享号，未核" data-grp="韩国"><td class="cn">上海 ⇄ 首尔金浦</td><td>上航 FM823 · 东航 MU511 · 大韩 KE2058 · 韩亚 OZ3625（虹桥）</td><td>28（4 家）</td><td>2h10</td><td>KE2058/OZ3625 疑代码共享号，未核</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="首尔仁川" data-direct="1" data-wk="41" data-cat="中国航司" data-note="双边上限 45→52 班/周" data-grp="韩国"><td class="cn">北京 ⇄ 首尔仁川</td><td>国航 CA123/125/135 · 大韩 KE852/856/864 · 韩亚 OZ332/334/336</td><td>41（3 家）</td><td>2h20</td><td>双边上限 45→52 班/周</td><td><span class="mini">[C] AvWeek；[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="首尔仁川" data-direct="1" data-wk="21" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">北京 ⇄ 首尔仁川</td><td>国航 CA131 · 南航 CZ315 · 东航 MU2073（大兴）</td><td>21（3 家）</td><td>2h05</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="首尔金浦" data-direct="1" data-wk="21" data-cat="中国航司" data-note="KE2052/OZ3365 疑代码共享号" data-grp="韩国"><td class="cn">北京 ⇄ 首尔金浦</td><td>国航 CA137 · 大韩 KE2052 · 韩亚 OZ3365</td><td>21（3 家）</td><td>2h15</td><td>KE2052/OZ3365 疑代码共享号</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="首尔仁川" data-direct="1" data-wk="28" data-cat="中国航司" data-note="双边协定新增广州运力" data-grp="韩国"><td class="cn">广州 ⇄ 首尔仁川</td><td>南航 CZ337/339/3061 · 大韩 KE868 · 韩亚 OZ356/358/370</td><td>28（3 家）</td><td>3h35</td><td>双边协定新增广州运力</td><td><span class="mini">[C] AvWeek；[D]</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="首尔仁川" data-direct="1" data-wk="28" data-cat="中国航司" data-note="韩方 4 月配额 14→18；NW26 大韩换 A330-300" data-grp="韩国"><td class="cn">深圳 ⇄ 首尔仁川</td><td>深航 ZH631/633 · 南航 CZ3089 · 大韩 KE836 · 韩亚 OZ372</td><td>28（4 家）</td><td>4h00</td><td>韩方 4 月配额 14→18；NW26 大韩换 A330-300</td><td><span class="mini">[C] 首尔经济；[D]</span></td></tr>
+<tr class="tp" data-cn="青岛" data-fo="首尔仁川" data-direct="1" data-wk="115" data-cat="中国航司" data-note="<b>中韩运力第二城市对</b>" data-grp="韩国"><td class="cn">青岛 ⇄ 首尔仁川</td><td>山航 SC（6/日）· 东航 MU559/2033/2039/2043 · 大韩 KE842/844 · 青岛航 QW · 济州航 7C8402 · 真航 LJ862</td><td><b>115</b>（7 家）</td><td>0h55–1h50</td><td><b>中韩运力第二城市对</b></td><td><span class="mini">[C] AvWeek；[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="济州" data-direct="1" data-wk="76" data-cat="中国航司" data-note="<b>中韩运力第三城市对，LCC 主导</b>" data-grp="韩国"><td class="cn">上海 ⇄ 济州</td><td>春秋 9C（4–5/日）· 吉祥 HO1325/1371 · 东航 · 真航 LJ · 易斯达 ZE</td><td><b>76</b>（5 家）</td><td>2h00</td><td><b>中韩运力第三城市对，LCC 主导</b></td><td><span class="mini">[C] AvWeek；[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="济州" data-direct="1" data-wk="25" data-cat="中国航司" data-note="吉祥大兴–济州备案 9 班/周，当周聚合库未见，是否仍飞未核" data-grp="韩国"><td class="cn">北京 ⇄ 济州</td><td>国航 CA711 · 大韩 KE2066 · 济州航 7C8134（首都）；春秋 9C7205 · 济州航 7C8136（大兴）</td><td>14 ＋ 11</td><td>2h40–2h50</td><td>吉祥大兴–济州备案 9 班/周，当周聚合库未见，是否仍飞未核</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="釜山" data-direct="1" data-wk="34" data-cat="中国航司" data-note="NW26 大韩 A321neo 1/日" data-grp="韩国"><td class="cn">上海 ⇄ 釜山</td><td>大韩 KE2072/2074 · 上航 FM829 · 东航 MU5043 · 济州航 7C8352 · 春秋 9C6899</td><td>34（5 家）</td><td>2h15</td><td>NW26 大韩 A321neo 1/日</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="釜山" data-direct="1" data-wk="13" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">北京 ⇄ 釜山</td><td>国航 CA129 · 大韩 KE2062</td><td>13</td><td>2h20</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="青岛" data-fo="釜山" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">青岛 ⇄ 釜山</td><td>釜山航 BX322/684 · 大韩 KE2082</td><td>14</td><td>2h00</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="首尔仁川" data-direct="1" data-wk="17" data-cat="中国航司" data-note="NW26 大韩 3 班/周 A321neo" data-grp="韩国"><td class="cn">杭州 ⇄ 首尔仁川</td><td>国航 CA139 · 东航 MU5071 · 大韩 KE108</td><td>17</td><td>2h35</td><td>NW26 大韩 3 班/周 A321neo</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="首尔仁川" data-direct="1" data-wk="14" data-cat="中国航司" data-note="韩亚 3/29 恢复每日；韩方配额 7→11" data-grp="韩国"><td class="cn">成都 ⇄ 首尔仁川</td><td>国航 CA401/441 · 川航 3U3973 · 韩亚 OZ324</td><td>14</td><td>3h35</td><td>韩亚 3/29 恢复每日；韩方配额 7→11</td><td><span class="mini">[C]；[D]</span></td></tr>
+<tr class="tp" data-cn="西安" data-fo="首尔仁川" data-direct="1" data-wk="19" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">西安 ⇄ 首尔仁川</td><td>大韩 KE138/142 · 东航 MU853 · 韩亚 OZ348</td><td>19</td><td>3h00</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="大连" data-fo="首尔仁川" data-direct="1" data-wk="32" data-cat="中国航司" data-note="韩亚 3/29 起 7→10，当周聚合库未列，未核" data-grp="韩国"><td class="cn">大连 ⇄ 首尔仁川</td><td>南航 CZ675/685/695 · 大韩 KE874/876</td><td>32</td><td>1h30</td><td>韩亚 3/29 起 7→10，当周聚合库未列，未核</td><td><span class="mini">[C]；[D]</span></td></tr>
+<tr class="tp" data-cn="沈阳" data-fo="首尔仁川" data-direct="1" data-wk="42" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">沈阳 ⇄ 首尔仁川</td><td>南航 CZ651/671/681 · 大韩 KE832/834 · 德威 TW614</td><td>42</td><td>2h00</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="天津" data-fo="首尔仁川" data-direct="1" data-wk="27" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">天津 ⇄ 首尔仁川</td><td>国航 CA171/801 · 天航 GS7993 · 大韩 KE804/806 · 韩亚 OZ328</td><td>27</td><td>1h55</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="南京" data-fo="首尔仁川" data-direct="1" data-wk="25" data-cat="中国航司" data-note="NW26 大韩 4 班/周" data-grp="韩国"><td class="cn">南京 ⇄ 首尔仁川</td><td>东航 MU579/2921 · 韩亚 OZ350 · 大韩 KE102</td><td>25</td><td>2h25</td><td>NW26 大韩 4 班/周</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="武汉" data-fo="首尔仁川" data-direct="1" data-wk="11" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">武汉 ⇄ 首尔仁川</td><td>大韩 KE160/166 · 南航 CZ6079 · 德威 TW616</td><td>11</td><td>3h10</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="重庆" data-fo="首尔仁川" data-direct="1" data-wk="7" data-cat="中国航司" data-note="韩亚宣称 3/29 复飞每日，当周聚合库仅国航，未核" data-grp="韩国"><td class="cn">重庆 ⇄ 首尔仁川</td><td>国航（1/日）</td><td>7</td><td>3h35</td><td>韩亚宣称 3/29 复飞每日，当周聚合库仅国航，未核</td><td><span class="mini">[C]；[D]</span></td></tr>
+<tr class="tp" data-cn="哈尔滨" data-fo="首尔仁川" data-direct="1" data-wk="17" data-cat="中国航司" data-note="双边协定新增哈尔滨运力" data-grp="韩国"><td class="cn">哈尔滨 ⇄ 首尔仁川</td><td>南航 CZ683/691 · 济州航 7C8906</td><td>17</td><td>2h50</td><td>双边协定新增哈尔滨运力</td><td><span class="mini">[C]；[D]</span></td></tr>
+<tr class="tp" data-cn="延吉" data-fo="首尔仁川" data-direct="1" data-wk="39" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">延吉 ⇄ 首尔仁川</td><td>国航 CA143 · 南航 CZ6073/8141 · 大韩 KE116 · 济州航 7C8904 · 东航 MU891 · 韩亚 OZ352</td><td>39（6 家）</td><td>2h40</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="长春" data-fo="首尔仁川" data-direct="1" data-wk="14" data-cat="中国航司" data-note="韩亚 5/6 起 7→9" data-grp="韩国"><td class="cn">长春 ⇄ 首尔仁川</td><td>南航 CZ637/687 · 韩亚 OZ304/380</td><td>14</td><td>2h05</td><td>韩亚 5/6 起 7→9</td><td><span class="mini">[C]；[D]</span></td></tr>
+<tr class="tp" data-cn="厦门" data-fo="首尔仁川" data-direct="1" data-wk="14" data-cat="中国航司" data-note="韩方配额 7→11" data-grp="韩国"><td class="cn">厦门 ⇄ 首尔仁川</td><td>大韩 KE126 · 厦航 MF871</td><td>14</td><td>3h25</td><td>韩方配额 7→11</td><td><span class="mini">[C]；[D]</span></td></tr>
+<tr class="tp" data-cn="威海" data-fo="首尔仁川" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">威海 ⇄ 首尔仁川</td><td>济州航 7C8502 · 东航 MU2017</td><td>14</td><td>1h15</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="长沙" data-fo="首尔仁川" data-direct="1" data-wk="8" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">长沙 ⇄ 首尔仁川</td><td>大韩 KE146 · 南航 CZ3065/5045</td><td>7–9（聚合库自相矛盾）</td><td>3h15</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="昆明" data-fo="首尔仁川" data-direct="1" data-wk="8" data-cat="中国航司" data-note="—" data-grp="韩国"><td class="cn">昆明 ⇄ 首尔仁川</td><td>大韩 KE162 · 东航 MU2003</td><td>8</td><td>4h20</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s4">四、日本 · 日方航司<span class="zh">日航 · 全日空，官网时刻表</span></h2>
+<div class="kicker">这一表是全服务航司、官网航班号级、最可靠。时长「计」＝起降时刻扣时差算的。票价是 JAL 官网当日显示最低往返，含税。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="北京" data-fo="东京羽田" data-direct="1" data-wk="14" data-cat="对方航司" data-note="往返 ¥2,454–2,734（≈$366–408）· JAL 官网当日最低" data-grp="日本"><td class="cn">北京 ⇄ 东京羽田</td><td><b>日航 JL020/021 · JL022/025</b></td><td>14（每日 2 班）</td><td>3h30（计）</td><td>往返 ¥2,454–2,734（≈$366–408）· JAL 官网当日最低</td><td><span class="mini">JAL 官网 S26</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="东京羽田" data-direct="1" data-wk="14" data-cat="对方航司" data-note="S26 与 W26/27 均在运" data-grp="日本"><td class="cn">北京 ⇄ 东京羽田</td><td><b>全日空 NH961/962 · NH963/964</b></td><td>14（每日 2 班）</td><td>未核</td><td>S26 与 W26/27 均在运</td><td><span class="mini">ANA 官网</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="东京成田" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="日本"><td class="cn">北京 ⇄ 东京成田</td><td>日航 JL8680/8689（春秋日本执飞）</td><td>7</td><td>3h45（计）</td><td>—</td><td><span class="mini">JAL 官网</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="大阪" data-direct="1" data-wk="3" data-cat="对方航司" data-note="往返 ¥2,836（≈$423）" data-grp="日本"><td class="cn">北京 ⇄ 大阪</td><td>全日空 NH979/980</td><td>3（三/四/日）</td><td>未核</td><td>往返 ¥2,836（≈$423）</td><td><span class="mini">ANA 官网</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京羽田" data-direct="1" data-wk="21" data-cat="对方航司" data-note="往返 ¥2,444–2,705（≈$364–403）" data-grp="日本"><td class="cn">上海 ⇄ 东京羽田</td><td><b>日航 JL082/081（虹桥）· JL080/085 · JL086/089（浦东）</b></td><td>7 ＋ 14 ＝ 21</td><td>2h50–3h00（计）</td><td>往返 ¥2,444–2,705（≈$364–403）</td><td><span class="mini">JAL 官网</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京羽田" data-direct="1" data-wk="21" data-cat="对方航司" data-note="NH967 用 767-300ER" data-grp="日本"><td class="cn">上海 ⇄ 东京羽田</td><td><b>全日空 NH969/970（虹桥）· NH967/968 · NH971/972（浦东）</b></td><td>7 ＋ 14 ＝ 21</td><td>未核</td><td>NH967 用 767-300ER</td><td><span class="mini">ANA 官网；AeroRoutes 2026-02-25</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京成田" data-direct="1" data-wk="14" data-cat="对方航司" data-note="<b>日航主线 JL876/873 整个 S26 停飞</b>，成田线全靠春秋日本机组" data-grp="日本"><td class="cn">上海 ⇄ 东京成田</td><td>日航 JL8790/8695 · JL8696/8799（春秋日本执飞）</td><td>14</td><td>3h00（计）</td><td><b>日航主线 JL876/873 整个 S26 停飞</b>，成田线全靠春秋日本机组</td><td><span class="mini">JAL 官网；AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京成田" data-direct="1" data-wk="7" data-cat="对方航司" data-note="NH921/922 停航至 2027-03-27" data-grp="日本"><td class="cn">上海 ⇄ 东京成田</td><td>全日空 NH919/920（787-8）</td><td>7</td><td>未核</td><td>NH921/922 停航至 2027-03-27</td><td><span class="mini">ANA 官网</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="大阪" data-direct="1" data-wk="7" data-cat="对方航司" data-note="往返 ¥2,464（≈$367）" data-grp="日本"><td class="cn">上海 ⇄ 大阪</td><td>日航 JL894/891</td><td>7</td><td>2h20（计）</td><td>往返 ¥2,464（≈$367）</td><td><span class="mini">JAL 官网</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="大阪" data-direct="1" data-wk="8" data-cat="对方航司" data-note="—" data-grp="日本"><td class="cn">上海 ⇄ 大阪</td><td>全日空 NH973/974 · NH975/976</td><td>8（一/二/五/六各 2 班）</td><td>未核</td><td>—</td><td><span class="mini">ANA 官网</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="东京羽田" data-direct="1" data-wk="7" data-cat="对方航司" data-note="往返 ¥2,324（≈$347）" data-grp="日本"><td class="cn">广州 ⇄ 东京羽田</td><td>日航 JL088/087</td><td>7</td><td>4h20（计）</td><td>往返 ¥2,324（≈$347）</td><td><span class="mini">JAL 官网</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="东京羽田" data-direct="1" data-wk="7" data-cat="对方航司" data-note="S26 起换 A320 小机型" data-grp="日本"><td class="cn">广州 ⇄ 东京羽田</td><td>全日空 NH923/924</td><td>7</td><td>未核</td><td>S26 起换 A320 小机型</td><td><span class="mini">ANA 官网；AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="东京羽田" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="日本"><td class="cn">深圳 ⇄ 东京羽田</td><td>全日空 NH965/966</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">ANA 官网</span></td></tr>
+<tr class="tp" data-cn="大连" data-fo="东京羽田" data-direct="1" data-wk="7" data-cat="对方航司" data-note="往返 ¥2,204（≈$329）" data-grp="日本"><td class="cn">大连 ⇄ 东京羽田</td><td>日航 JL024/023</td><td>7</td><td>2h55（计）</td><td>往返 ¥2,204（≈$329）</td><td><span class="mini">JAL 官网</span></td></tr>
+<tr class="tp" data-cn="大连" data-fo="东京成田" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="日本"><td class="cn">大连 ⇄ 东京成田</td><td>全日空 NH903/904</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">ANA 官网</span></td></tr>
+<tr class="tp" data-cn="青岛" data-fo="东京羽田" data-direct="1" data-wk="7" data-cat="对方航司" data-note="成田/关西–青岛两线停航" data-grp="日本"><td class="cn">青岛 ⇄ 东京羽田</td><td>全日空 NH949/950</td><td>7</td><td>未核</td><td>成田/关西–青岛两线停航</td><td><span class="mini">ANA 官网</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="东京成田" data-direct="1" data-wk="3" data-cat="对方航司" data-note="—" data-grp="日本"><td class="cn">杭州 ⇄ 东京成田</td><td>全日空 NH929/930（787-8）</td><td>3（一/二/五，由 7 减）</td><td>未核</td><td>—</td><td><span class="mini">ANA 官网；AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="天津" data-fo="名古屋" data-direct="1" data-wk="2" data-cat="对方航司" data-note="—" data-grp="日本"><td class="cn">天津 ⇄ 名古屋</td><td>日航 JL840/841</td><td>2（一/五）</td><td>2h45（计）</td><td>—</td><td><span class="mini">JAL 官网</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s5">五、日本 · 中方航司<span class="zh">S26 计划口径，实飞打七折</span></h2>
+<div class="kicker">🔴 <b>「计划/可售」口径，实飞 7–8 月取消率 31%</b>。表末虚线那组是已知实飞为零的。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="北京" data-fo="东京羽田" data-direct="1" data-wk="35" data-cat="中国航司" data-note="中日线最密的一对" data-grp="日本"><td class="cn">北京 ⇄ 东京羽田</td><td><b>国航 CA181/182 等</b></td><td>35（每日 5 班，A321）</td><td>未核</td><td>中日线最密的一对</td><td><span class="mini">AeroRoutes 26JAN26</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="大阪" data-direct="1" data-wk="14" data-cat="中国航司" data-note="W26 维持 2×日" data-grp="日本"><td class="cn">北京 ⇄ 大阪</td><td>国航 CA127/128 等</td><td>14 可售 ＋ 7 仅全价（计划 21）</td><td>未核</td><td>W26 维持 2×日</td><td><span class="mini">AeroRoutes 01AUG26</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="大阪" data-direct="1" data-wk="5" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">北京 ⇄ 大阪</td><td>海航 HU</td><td>7（其中 2 班不可售）</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 26JAN26</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="东京成田" data-direct="1" data-wk="3" data-cat="中国航司" data-note="国航该线已取消" data-grp="日本"><td class="cn">北京 ⇄ 东京成田</td><td>海航 HU</td><td>4（1 班不可售）</td><td>未核</td><td>国航该线已取消</td><td><span class="mini">AeroRoutes 26JAN26</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="东京羽田" data-direct="1" data-wk="11" data-cat="中国航司" data-note="东航 W26 减至 2" data-grp="日本"><td class="cn">北京 ⇄ 东京羽田</td><td>东航 MU（大兴，A321）· 南航 CZ（大兴，A330）</td><td>4 ＋ 7</td><td>未核</td><td>东航 W26 减至 2</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="大阪" data-direct="1" data-wk="7" data-cat="中国航司" data-note="⚠️ <b>8 月实飞 0 班（计划 93）</b>" data-grp="日本"><td class="cn">北京 ⇄ 大阪</td><td>东航 MU525/526 等（大兴）</td><td>计划 14、可售 7</td><td>未核</td><td>⚠️ <b>8 月实飞 0 班（计划 93）</b></td><td><span class="mini">大纪元 2026-09-02</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京羽田" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">上海 ⇄ 东京羽田</td><td>东航 MU（虹桥）· 上航 FM（虹桥）</td><td>7 ＋ 7</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 27MAR26</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京成田" data-direct="1" data-wk="24" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">上海 ⇄ 东京成田</td><td><b>东航 MU523/524（A350）· MU521/522 · MU271/272 · MU727/728</b></td><td>24</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 27MAR26</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京成田" data-direct="1" data-wk="14" data-cat="中国航司" data-note="W26 维持 2×日（原报 4×日）" data-grp="日本"><td class="cn">上海 ⇄ 东京成田</td><td>国航 CA157/158 · CA923/924</td><td>14 可售（计划 28）</td><td>未核</td><td>W26 维持 2×日（原报 4×日）</td><td><span class="mini">AeroRoutes 01AUG26</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京成田" data-direct="1" data-wk="17" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">上海 ⇄ 东京成田</td><td>吉祥 HO（787-9）· 春秋 9C · 南航 CZ</td><td>7 ／ 7 ／ 3</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 26JAN26</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="东京羽田" data-direct="1" data-wk="28" data-cat="中国航司" data-note="吉祥 3 班改 787-9" data-grp="日本"><td class="cn">上海 ⇄ 东京羽田</td><td>东航 MU539/540 · MU575/576（777-300ER）· 上航 FM · 吉祥 HO · 春秋 9C</td><td>14 ／ 7 ／ 3 ／ 4</td><td>未核</td><td>吉祥 3 班改 787-9</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="大阪" data-direct="1" data-wk="28" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">上海 ⇄ 大阪</td><td><b>东航 MU225/226 · MU515/516 · MU729/730 等</b></td><td>28（4×日）</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 27MAR26</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="大阪" data-direct="1" data-wk="56" data-cat="中国航司" data-note="春秋计划 8×日仅 3×日可售" data-grp="日本"><td class="cn">上海 ⇄ 大阪</td><td>吉祥 HO · 春秋 9C · 上航 FM873/874 · 国航 CA921/922</td><td>21 ／ 21（计划 56）／ 7–14 ／ 7</td><td>未核</td><td>春秋计划 8×日仅 3×日可售</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="名古屋" data-direct="1" data-wk="26" data-cat="中国航司" data-note="国航该线 S26 已取消" data-grp="日本"><td class="cn">上海 ⇄ 名古屋</td><td>东航 MU（A321）· 吉祥 HO · 春秋 9C · 上航 FM</td><td>13 ／ 3 ／ 3 ／ 7</td><td>未核</td><td>国航该线 S26 已取消</td><td><span class="mini">AeroRoutes 27MAR26</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="福冈" data-direct="1" data-wk="31" data-cat="中国航司" data-note="国航该线已取消" data-grp="日本"><td class="cn">上海 ⇄ 福冈</td><td>东航 MU531/532 等 · 春秋 9C · 上航 FM</td><td>13 ／ 11 ／ 7</td><td>未核</td><td>国航该线已取消</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="札幌" data-direct="1" data-wk="5" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">上海 ⇄ 札幌</td><td>东航 MU · 春秋 9C</td><td>3 ／ 2→4</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="冲绳" data-direct="1" data-wk="2" data-cat="中国航司" data-note="东航同线取消" data-grp="日本"><td class="cn">上海 ⇄ 冲绳</td><td>春秋 9C6977/6978</td><td>2（10-25 复航）</td><td>未核</td><td>东航同线取消</td><td><span class="mini">AeroRoutes 01AUG26</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="东京羽田" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">广州 ⇄ 东京羽田</td><td><b>南航 CZ（777-300ER／A321neo）</b></td><td>14（每日 2 班）</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 26JAN26</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="东京成田" data-direct="1" data-wk="4" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">广州 ⇄ 东京成田</td><td>南航 CZ（A321neo）</td><td>4</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="大阪" data-direct="1" data-wk="7" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">广州 ⇄ 大阪</td><td>南航 CZ8107/8108 等 · 九元 AQ</td><td>7 ／ 未核</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes；民航资源网</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="东京成田" data-direct="1" data-wk="7" data-cat="中国航司" data-note="南航该线已取消" data-grp="日本"><td class="cn">深圳 ⇄ 东京成田</td><td>深航 ZH（737-800）</td><td>7（仅全价可售）</td><td>未核</td><td>南航该线已取消</td><td><span class="mini">AeroRoutes 26JAN26</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="大阪" data-direct="1" data-wk="6" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">深圳 ⇄ 大阪</td><td>深航 ZH661/662（A320）</td><td>6（仅全价可售）</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="东京成田" data-direct="1" data-wk="5" data-cat="中国航司" data-note="<b>成都直飞日本仅剩此一条</b>，国航同线 01-26 起取消" data-grp="日本"><td class="cn">成都 ⇄ 东京成田</td><td>川航 3U3961</td><td>5（可售 2）</td><td>未核</td><td><b>成都直飞日本仅剩此一条</b>，国航同线 01-26 起取消</td><td><span class="mini">四川在线；AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="重庆" data-fo="东京成田" data-direct="1" data-wk="4" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">重庆 ⇄ 东京成田</td><td>国航 CA（737 MAX 8）</td><td>7（可售 4）→ W26 减至 2</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 01AUG26</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="大阪" data-direct="1" data-wk="10" data-cat="中国航司" data-note="国航 W26 维持 5" data-grp="日本"><td class="cn">杭州 ⇄ 大阪</td><td>国航 CA（A321）· 长龙 GJ · 首都 JD</td><td>7 ／ 2 ／ 1</td><td>未核</td><td>国航 W26 维持 5</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="东京成田" data-direct="1" data-wk="4" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">杭州 ⇄ 东京成田</td><td>国航 CA（A321）</td><td>4</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 26JAN26</span></td></tr>
+<tr class="tp" data-cn="大连" data-fo="东京成田" data-direct="1" data-wk="3" data-cat="中国航司" data-note="国航该线 10-25 起删除" data-grp="日本"><td class="cn">大连 ⇄ 东京成田</td><td>南航 CZ（A321）</td><td>3</td><td>未核</td><td>国航该线 10-25 起删除</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="沈阳" data-fo="东京成田" data-direct="1" data-wk="4" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">沈阳 ⇄ 东京成田</td><td>南航 CZ（A321neo）</td><td>4</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="青岛" data-fo="大阪" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">青岛 ⇄ 大阪</td><td>山航 SC4095/4096 等</td><td>计划 21，可售 14</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="济南" data-fo="大阪" data-direct="1" data-wk="7" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">济南 ⇄ 大阪</td><td>山航 SC8087/8088 等</td><td>计划 14，可售 7</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="厦门" data-fo="东京成田" data-direct="1" data-wk="7" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">厦门 ⇄ 东京成田</td><td>厦航 MF（737-800／787-8）</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="福州" data-fo="东京成田" data-direct="1" data-wk="7" data-cat="中国航司" data-note="—" data-grp="日本"><td class="cn">福州 ⇄ 东京成田</td><td>厦航 MF（787-8）</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes</span></td></tr>
+</tbody></table></div><h3>计划有班，实飞为零</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="成都" data-fo="大阪" data-direct="0" data-wk="0" data-cat="已停飞" data-note="—" data-grp="日本"><td class="cn">成都 ⇄ 大阪</td><td><s>川航 3U</s></td><td>计划 7，全部不可售</td><td>—</td><td>—</td><td><span class="mini">AeroRoutes 26JAN26</span></td></tr>
+<tr class="tp gone" data-cn="重庆" data-fo="大阪" data-direct="0" data-wk="0" data-cat="已停飞" data-note="8 月实飞 0" data-grp="日本"><td class="cn">重庆 ⇄ 大阪</td><td><s>厦航 MF</s></td><td>3 不可售</td><td>—</td><td>8 月实飞 0</td><td><span class="mini">AeroRoutes；大纪元</span></td></tr>
+<tr class="tp gone" data-cn="武汉" data-fo="东京成田" data-direct="0" data-wk="0" data-cat="已停飞" data-note="8 月实飞 0" data-grp="日本"><td class="cn">武汉 ⇄ 东京成田</td><td><s>东航 MU</s></td><td>3 不可售</td><td>—</td><td>8 月实飞 0</td><td><span class="mini">大纪元 2026-09-02</span></td></tr>
+<tr class="tp gone" data-cn="武汉" data-fo="大阪" data-direct="0" data-wk="0" data-cat="已停飞" data-note="8 月实飞 0" data-grp="日本"><td class="cn">武汉 ⇄ 大阪</td><td><s>东航 MU</s></td><td>7 不可售</td><td>—</td><td>8 月实飞 0</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp gone" data-cn="西安" data-fo="东京成田" data-direct="0" data-wk="0" data-cat="已停飞" data-note="8 月实飞 0" data-grp="日本"><td class="cn">西安 ⇄ 东京成田</td><td><s>东航 MU（A320）</s></td><td>4 可售</td><td>—</td><td>8 月实飞 0</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp gone" data-cn="广州" data-fo="名古屋" data-direct="0" data-wk="0" data-cat="已停飞" data-note="8 月实飞 0" data-grp="日本"><td class="cn">广州 ⇄ 名古屋</td><td><s>—</s></td><td>—</td><td>—</td><td>8 月实飞 0</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp gone" data-cn="杭州" data-fo="名古屋" data-direct="0" data-wk="0" data-cat="已停飞" data-note="8 月实飞 0" data-grp="日本"><td class="cn">杭州 ⇄ 名古屋</td><td><s>—</s></td><td>—</td><td>—</td><td>8 月实飞 0</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp gone" data-cn="南京" data-fo="东京成田" data-direct="0" data-wk="0" data-cat="已停飞" data-note="02-26 起取消" data-grp="日本"><td class="cn">南京 ⇄ 东京成田</td><td><s>东航 MU</s></td><td>7 不可售</td><td>—</td><td>02-26 起取消</td><td><span class="mini">AeroRoutes；民航资源网</span></td></tr>
+<tr class="tp gone" data-cn="上海" data-fo="广岛" data-direct="0" data-wk="0" data-cat="已停飞" data-note="10-25 起取消" data-grp="日本"><td class="cn">上海 ⇄ 广岛</td><td><s>东航 MU（A320neo）</s></td><td>2</td><td>—</td><td>10-25 起取消</td><td><span class="mini">AeroRoutes 01AUG26</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s6">六、泰国<span class="zh">曼谷素万那普 · 廊曼 · 普吉 · 清迈</span></h2>
+<div class="kicker">🔴 口径同韩国表（单向当周单一源）。<b>廊曼是 LCC 专属口岸</b>，泰亚航与泰狮航只飞那里。9 月是普吉淡季，班次偏低正常。<b>深圳–普吉</b>泰旅游部称 4 班/周、聚合库当周 0，冲突未核。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="上海" data-fo="曼谷" data-direct="1" data-wk="101" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">上海 ⇄ 曼谷</td><td>春秋 9C（4/日）· 上航 FM833/839 · 东航 · 泰航 TG · 吉祥 HO · 泰越捷 VZ · 国航 CA805（素万那普）</td><td><b>101</b>（7 家）</td><td>4h20–5h10</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="曼谷" data-direct="1" data-wk="44" data-cat="中国航司" data-note="大兴–素万那普另有国航 CA803、东航 MU2071，班次极少" data-grp="泰国"><td class="cn">北京 ⇄ 曼谷</td><td>国航 CA555/885/959/979 · 海航 HU429/7995 · 泰航 TG615/675（素万那普）</td><td>44</td><td>5h25</td><td>大兴–素万那普另有国航 CA803、东航 MU2071，班次极少</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="曼谷" data-direct="1" data-wk="98" data-cat="中国航司" data-note="素万那普" data-grp="泰国"><td class="cn">广州 ⇄ 曼谷</td><td>南航 CZ357/361/363 等（8–9/日）· 九元 AQ · 泰航 · 春秋 9C7419 · 肯尼亚航 KQ（第五航权）</td><td><b>98</b>（6 家）</td><td>3h20</td><td>素万那普</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="曼谷" data-direct="1" data-wk="40" data-cat="中国航司" data-note="素万那普" data-grp="泰国"><td class="cn">深圳 ⇄ 曼谷</td><td>深航 ZH305/307/309 · 南航 CZ8075/8157/8323</td><td>40</td><td>3h45</td><td>素万那普</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="曼谷" data-direct="1" data-wk="39" data-cat="中国航司" data-note="素万那普" data-grp="泰国"><td class="cn">成都 ⇄ 曼谷</td><td>川航 3U3935/3937 · 泰航 TG619 · 春秋 · 国航 CA465/471 · 东航 MU5035 · 成都航 EU2867</td><td>39（6 家）</td><td>3h40</td><td>素万那普</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="昆明" data-fo="曼谷" data-direct="1" data-wk="40" data-cat="中国航司" data-note="素万那普" data-grp="泰国"><td class="cn">昆明 ⇄ 曼谷</td><td>东航 MU741/893/6087/9613/9621 · 泰航 TG613 · 昆明航 KY8369</td><td>40</td><td>2h55</td><td>素万那普</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="曼谷" data-direct="1" data-wk="16" data-cat="中国航司" data-note="素万那普" data-grp="泰国"><td class="cn">杭州 ⇄ 曼谷</td><td>首都航 JD419 · 长龙 GJ8021 · 泰越捷 VZ3537 · 国航 CA715</td><td>16</td><td>4h35</td><td>素万那普</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="重庆" data-fo="曼谷" data-direct="1" data-wk="14" data-cat="中国航司" data-note="素万那普" data-grp="泰国"><td class="cn">重庆 ⇄ 曼谷</td><td>川航 3U3771 · 海航 HU423 · 重庆航 OQ2361</td><td>14</td><td>3h35</td><td>素万那普</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="南京" data-fo="曼谷" data-direct="1" data-wk="11" data-cat="中国航司" data-note="素万那普" data-grp="泰国"><td class="cn">南京 ⇄ 曼谷</td><td>东航 MU2803 · 首都航 JD619</td><td>11</td><td>4h55</td><td>素万那普</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="西安" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="中国航司" data-note="素万那普" data-grp="泰国"><td class="cn">西安 ⇄ 曼谷</td><td>春秋 9C（1/日）</td><td>7</td><td>4h00</td><td>素万那普</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="曼谷廊曼" data-direct="1" data-wk="7" data-cat="对方航司" data-note="<b>廊曼＝LCC 专属口岸</b>" data-grp="泰国"><td class="cn">广州 ⇄ 曼谷廊曼</td><td>泰亚航 FD531/533 · 泰狮航 SL901</td><td>7</td><td>3h00</td><td><b>廊曼＝LCC 专属口岸</b></td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="曼谷廊曼" data-direct="1" data-wk="5" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">深圳 ⇄ 曼谷廊曼</td><td>泰亚航 FD597 · 泰狮航 SL903</td><td>5</td><td>2h55</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="曼谷廊曼" data-direct="1" data-wk="2" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">上海 ⇄ 曼谷廊曼</td><td>泰狮航 SL（2/周）</td><td>2</td><td>4h30</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="普吉" data-direct="1" data-wk="19" data-cat="中国航司" data-note="9 月淡季" data-grp="泰国"><td class="cn">上海 ⇄ 普吉</td><td>上航 FM831/835/857/875 · 春秋 9C8521/8663/8665 · 吉祥 HO1321/1369</td><td>19</td><td>5h45</td><td>9 月淡季</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="普吉" data-direct="1" data-wk="7" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">北京 ⇄ 普吉</td><td>国航 CA581/797/821 · 海航 HU7929</td><td>7</td><td>6h20</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="普吉" data-direct="1" data-wk="10" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">广州 ⇄ 普吉</td><td>南航 CZ6053/6057/6063 · 春秋 9C8771</td><td>10</td><td>3h50</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="普吉" data-direct="1" data-wk="13" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">成都 ⇄ 普吉</td><td>川航 3U3929/3931 · 国航 CA413 · 春秋 9C7653</td><td>13</td><td>4h05</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="昆明" data-fo="普吉" data-direct="1" data-wk="3" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">昆明 ⇄ 普吉</td><td>东航（3/周）</td><td>3</td><td>3h20</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="昆明" data-fo="清迈" data-direct="1" data-wk="15" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">昆明 ⇄ 清迈</td><td>东航 MU7621/9619/9639</td><td>15</td><td>2h15</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="清迈" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">上海 ⇄ 清迈</td><td>春秋 9C8511/8979 · 东航 MU205 · 吉祥 HO1363</td><td>14</td><td>5h15</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="清迈" data-direct="1" data-wk="13" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">广州 ⇄ 清迈</td><td>南航 CZ3033/8327 · 春秋 9C8933</td><td>13</td><td>3h10</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="清迈" data-direct="1" data-wk="3" data-cat="中国航司" data-note="—" data-grp="泰国"><td class="cn">成都 ⇄ 清迈</td><td>成都航 EU（3/周）</td><td>3</td><td>2h30</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s7">七、越南<span class="zh">河内 · 胡志明 · 芽庄；岘港存疑</span></h2>
+<div class="kicker">🔴 口径同韩国表。越南对华<b>无免签</b>，电子签 25 美元单次。<b>岘港当周无任何大陆定期直飞</b>，与 2024–25 越捷/越航多条岘港线的报道不符，停飞、季节停飞还是数据缺失未核。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="上海" data-fo="河内" data-direct="1" data-wk="50" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">上海 ⇄ 河内</td><td>东航 MU5075/6011/6013 · 国航 CA703/755 · 吉祥 HO1317/1329 · 越航 VN533 · 越捷 VJ6011/7239</td><td><b>50</b>（5 家）</td><td>4h05</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="河内" data-direct="1" data-wk="17" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">北京 ⇄ 河内</td><td>国航 CA741/883 · 越航 VN513（首都）；越捷 VJ6043/7713 · 厦航 MF8011（大兴）</td><td>12 ＋ 5</td><td>4h00–4h05</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="河内" data-direct="1" data-wk="49" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">广州 ⇄ 河内</td><td>南航 CZ371/3049/8177/8315 · 越航 VN507 · 深航 ZH121 · 越捷 VJ6035/7527</td><td><b>49</b></td><td>2h15</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="河内" data-direct="1" data-wk="42" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">深圳 ⇄ 河内</td><td>深航 ZH101/103/105/107 · 南航 CZ8083/8469</td><td>42</td><td>2h15</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="河内" data-direct="1" data-wk="9" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">成都 ⇄ 河内</td><td>川航 3U3905 · 成都航 EU2863</td><td>9</td><td>2h15</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="河内" data-direct="1" data-wk="6" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">杭州 ⇄ 河内</td><td>国航（6/周）</td><td>6</td><td>3h30</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="昆明" data-fo="河内" data-direct="1" data-wk="7" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">昆明 ⇄ 河内</td><td>东航（1/日）</td><td>7</td><td>1h40</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="南宁" data-fo="河内" data-direct="1" data-wk="2" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">南宁 ⇄ 河内</td><td>北部湾航 GX（2/周）</td><td>2</td><td>1h10</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="胡志明" data-direct="1" data-wk="33" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">上海 ⇄ 胡志明</td><td>南航 CZ6077/6095 · 东航 MU281/6023/7407 · 越航 VN525 · 越捷 VJ3901/5011 · 吉祥 HO1327 · 春秋 9C7545</td><td>33（6 家）</td><td>4h50</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="胡志明" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">北京 ⇄ 胡志明</td><td>国航（首都 4/周）；越航 VN517 · 越捷 VJ3949/5019（大兴）</td><td>4 ＋ 10</td><td>5h10–5h40</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="胡志明" data-direct="1" data-wk="49" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">广州 ⇄ 胡志明</td><td>南航 CZ367/373/6089/8159 · 越航 VN503 · 春秋 9C7347 · 越捷 VJ3909/5009</td><td><b>49</b></td><td>3h05</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="胡志明" data-direct="1" data-wk="25" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">深圳 ⇄ 胡志明</td><td>南航 CZ8465/8473 · 深航 ZH117 · 越旅航 VU8601</td><td>25</td><td>3h30</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="胡志明" data-direct="1" data-wk="10" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">成都 ⇄ 胡志明</td><td>川航 3U3903 · 越捷 VJ5013</td><td>10</td><td>3h50</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="胡志明" data-direct="1" data-wk="7" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">杭州 ⇄ 胡志明</td><td>东航（1/日）</td><td>7</td><td>4h10</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="芽庄" data-direct="1" data-wk="9" data-cat="中国航司" data-note="金兰机场" data-grp="越南"><td class="cn">广州 ⇄ 芽庄</td><td>南航 CZ6049/8039/8475</td><td>9</td><td>2h35</td><td>金兰机场</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="芽庄" data-direct="1" data-wk="4" data-cat="中国航司" data-note="—" data-grp="越南"><td class="cn">成都 ⇄ 芽庄</td><td>川航（4/周）</td><td>4</td><td>3h40</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div><h3>存疑</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="上海" data-fo="岘港" data-direct="0" data-wk="0" data-cat="已停飞" data-note="⚠️ 聚合库与 flightconnections 均无大陆定期直飞，与 2024–25 报道的越捷/越航多条岘港线不符，<b>停飞还是数据缺失未核</b>" data-grp="越南"><td class="cn">上海 ⇄ 岘港</td><td><s>无定期直飞</s></td><td>0（当周）</td><td>—</td><td>⚠️ 聚合库与 flightconnections 均无大陆定期直飞，与 2024–25 报道的越捷/越航多条岘港线不符，<b>停飞还是数据缺失未核</b></td><td><span class="mini">[D]×2</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s8">八、马来西亚<span class="zh">吉隆坡 · 槟城 · 亚庇</span></h2>
+<div class="kicker">🔴 口径同韩国表。中马互免签 2025-07-17 生效，每次 30 天、180 天内累计 90 天。亚航（AK）是广州深圳亚庇线的主力，亚航X（D7）飞浦东大兴成都杭州。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="上海" data-fo="吉隆坡" data-direct="1" data-wk="73" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">上海 ⇄ 吉隆坡</td><td>上航 FM861/863/865/881（4–5/日）· 春秋 9C · 马航 MH · 亚航X D7331 · 吉祥 HO · 峇迪 OD</td><td><b>73</b>（6 家）</td><td>6h05</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="吉隆坡" data-direct="1" data-wk="25" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">北京 ⇄ 吉隆坡</td><td>国航 CA773/871（首都）；马航 MH319 · 亚航X D7343 · 东航 MU795（大兴）</td><td>7 ＋ 18</td><td>6h35–6h40</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="吉隆坡" data-direct="1" data-wk="89" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">广州 ⇄ 吉隆坡</td><td>南航 CZ349/365 等（7/日）· 亚航 AK113/115/117/119 · 九元 AQ1271 · 马航 · 峇迪 OD · 春秋 9C6921</td><td><b>89</b>（6 家）</td><td>4h25</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="吉隆坡" data-direct="1" data-wk="61" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">深圳 ⇄ 吉隆坡</td><td>亚航 AK123/127/129 · 深航 ZH327/329/333 · 南航 CZ5031/5079/8097 · 马航 MH523</td><td>61（4 家）</td><td>4h20</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="吉隆坡" data-direct="1" data-wk="38" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">成都 ⇄ 吉隆坡</td><td>川航 3U3993/3995 · 亚航X D7321/327 · 峇迪 OD673 · 国航 CA483 · 马航 MH527</td><td>38（5 家）</td><td>5h05</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="吉隆坡" data-direct="1" data-wk="15" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">杭州 ⇄ 吉隆坡</td><td>亚航X D7303/307 · 东航 MU5095 · 厦航 MF8677/8713</td><td>15</td><td>6h00</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="厦门" data-fo="吉隆坡" data-direct="1" data-wk="24" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">厦门 ⇄ 吉隆坡</td><td>厦航 MF823/847/857 · 马航 MH391 · 峇迪 OD679</td><td>24</td><td>4h55</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="槟城" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">上海 ⇄ 槟城</td><td>上航 FM877 · 吉祥 HO1365</td><td>14</td><td>5h45</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="槟城" data-direct="1" data-wk="14" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">广州 ⇄ 槟城</td><td>南航 CZ395/5047/8073</td><td>14</td><td>4h10</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="亚庇" data-direct="1" data-wk="23" data-cat="中国航司" data-note="沙巴" data-grp="马来西亚"><td class="cn">上海 ⇄ 亚庇</td><td>上航 FM867/7223/7251 · 春秋 9C8593 · 亚航 AK1517</td><td>23</td><td>4h40</td><td>沙巴</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="亚庇" data-direct="1" data-wk="16" data-cat="中国航司" data-note="—" data-grp="马来西亚"><td class="cn">广州 ⇄ 亚庇</td><td>亚航 AK1531/1533/1535 · 南航 CZ8335/8483</td><td>16</td><td>3h35</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="亚庇" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="马来西亚"><td class="cn">深圳 ⇄ 亚庇</td><td>亚航 AK（1/日）</td><td>7</td><td>3h10</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s9">九、印尼<span class="zh">雅加达 · 巴厘岛</span></h2>
+<div class="kicker">🔴 口径同韩国表。印尼对华<b>无免签</b>，落地签约 32 美元 30 天。<b>巴厘岛直飞城市</b>：浦东、广州各 21 班，厦门 7，成都 4，大兴 3（6/25 复航）；深圳、杭州、首都机场为 0。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="上海" data-fo="雅加达" data-direct="1" data-wk="15" data-cat="中国航司" data-note="—" data-grp="印尼"><td class="cn">上海 ⇄ 雅加达</td><td>东航 MU5069 · 鹰航 GA895 · 吉祥 HO1567</td><td>15</td><td>6h45</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="雅加达" data-direct="1" data-wk="5" data-cat="中国航司" data-note="大兴–雅加达无数据" data-grp="印尼"><td class="cn">北京 ⇄ 雅加达</td><td>国航（4–5/周）</td><td>5</td><td>7h50</td><td>大兴–雅加达无数据</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="雅加达" data-direct="1" data-wk="31" data-cat="中国航司" data-note="—" data-grp="印尼"><td class="cn">广州 ⇄ 雅加达</td><td>南航 CZ387/3037 · 鹰航 GA899 · TransNusa 8B861/863 · 春秋 9C7199</td><td>31（4 家）</td><td>5h25</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="雅加达" data-direct="1" data-wk="17" data-cat="中国航司" data-note="—" data-grp="印尼"><td class="cn">深圳 ⇄ 雅加达</td><td>南航 CZ8055/8353 · 深航 ZH161 · 春秋 9C7341</td><td>17</td><td>5h10</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="巴厘岛" data-direct="1" data-wk="21" data-cat="中国航司" data-note="—" data-grp="印尼"><td class="cn">上海 ⇄ 巴厘岛</td><td>东航 MU5029/7405 · 吉祥 HO1355</td><td>21</td><td>6h35</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="巴厘岛" data-direct="1" data-wk="3" data-cat="中国航司" data-note="<b>2026-06-25 复航</b>，二四六去；首都机场 0" data-grp="印尼"><td class="cn">北京 ⇄ 巴厘岛</td><td>东航 MU889/890（大兴，A330-300）</td><td>3</td><td>8h00</td><td><b>2026-06-25 复航</b>，二四六去；首都机场 0</td><td><span class="mini">[D] AeroRoutes 04-28</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="巴厘岛" data-direct="1" data-wk="21" data-cat="中国航司" data-note="—" data-grp="印尼"><td class="cn">广州 ⇄ 巴厘岛</td><td>南航 CZ625/8481 · TransNusa 8B968</td><td>21</td><td>5h30</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="巴厘岛" data-direct="1" data-wk="4" data-cat="中国航司" data-note="—" data-grp="印尼"><td class="cn">成都 ⇄ 巴厘岛</td><td>川航（4/周）</td><td>4</td><td>6h35</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="厦门" data-fo="巴厘岛" data-direct="1" data-wk="7" data-cat="中国航司" data-note="—" data-grp="印尼"><td class="cn">厦门 ⇄ 巴厘岛</td><td>厦航（1/日）</td><td>7</td><td>5h25</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s10">十、新加坡<span class="zh">新航 · 酷航 · 中方航司</span></h2>
+<div class="kicker"><b>新航 9 城</b>；<b>酷航 15 城</b>（10/26 起 16）。⚠️ 中方航司逐家班次大多未核。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="北京" data-fo="新加坡" data-direct="1" data-wk="21" data-cat="对方航司" data-note="全季在 14/21 间切换" data-grp="新加坡"><td class="cn">北京 ⇄ 新加坡</td><td><b>新航 SQ（A350-900MH／777-300ER）</b></td><td>21（8/17–10/11）；14（10/12–10/24）</td><td>未核</td><td>全季在 14/21 间切换</td><td><span class="mini">Mainly Miles 据新航 S26</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">北京 ⇄ 新加坡</td><td>新航 SQ（大兴，787-10）</td><td>7；8/17–9/25 停飞，9/26 恢复</td><td>未核</td><td>—</td><td><span class="mini">Mainly Miles</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="新加坡" data-direct="1" data-wk="0" data-cat="中国航司" data-note="航班号与班次均未核" data-grp="新加坡"><td class="cn">北京 ⇄ 新加坡</td><td>国航 CA · 东航 MU（大兴）</td><td>未核</td><td>未核</td><td>航班号与班次均未核</td><td><span class="mini">维基樟宜航点表</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="新加坡" data-direct="1" data-wk="35" data-cat="对方航司" data-note="中新线最密的一对" data-grp="新加坡"><td class="cn">上海 ⇄ 新加坡</td><td><b>新航 SQ（A350MH／A380／777-300ER）</b></td><td>35（每日 5 班，由 28 增）</td><td>未核</td><td>中新线最密的一对</td><td><span class="mini">Mainly Miles</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="新加坡" data-direct="1" data-wk="0" data-cat="中国航司" data-note="逐家班次未核" data-grp="新加坡"><td class="cn">上海 ⇄ 新加坡</td><td>东航 MU · 吉祥 HO · 上航 FM · 国航 CA · 春秋 9C · 酷航 TR</td><td>未核（聚合站示全航司 431 班/月）</td><td>未核</td><td>逐家班次未核</td><td><span class="mini">flightconnections（聚合）</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="新加坡" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">广州 ⇄ 新加坡</td><td>新航 SQ（787）</td><td>14</td><td>未核</td><td>—</td><td><span class="mini">Mainly Miles</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="新加坡" data-direct="1" data-wk="0" data-cat="中国航司" data-note="逐家班次未核" data-grp="新加坡"><td class="cn">广州 ⇄ 新加坡</td><td>南航 CZ · 酷航 TR · 九元 AQ</td><td>未核（全航司 230 班/月）</td><td>未核</td><td>逐家班次未核</td><td><span class="mini">维基；flightconnections</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="2026-01 曾因民航局审批延迟无法售 3/29 后机票" data-grp="新加坡"><td class="cn">深圳 ⇄ 新加坡</td><td>新航 SQ（737 MAX 8）</td><td>7</td><td>未核</td><td>2026-01 曾因民航局审批延迟无法售 3/29 后机票</td><td><span class="mini">Mainly Miles</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="新加坡" data-direct="1" data-wk="0" data-cat="中国航司" data-note="逐家班次未核" data-grp="新加坡"><td class="cn">深圳 ⇄ 新加坡</td><td>南航 CZ · 深航 ZH</td><td>未核（全航司 176 班/月）</td><td>未核</td><td>逐家班次未核</td><td><span class="mini">维基；flightconnections</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">成都 ⇄ 新加坡</td><td>新航 SQ（787）· 国航 CA · 川航 3U</td><td>7 ／ 未核 ／ 未核</td><td>未核</td><td>—</td><td><span class="mini">Mainly Miles；维基</span></td></tr>
+<tr class="tp" data-cn="重庆" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">重庆 ⇄ 新加坡</td><td>新航 SQ（737 MAX 8）· 国航 CA · 重庆航空 OQ</td><td>7 ／ 未核 ／ 未核</td><td>未核</td><td>—</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp" data-cn="厦门" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">厦门 ⇄ 新加坡</td><td>新航 SQ（737 MAX 8）· 厦航 MF</td><td>7 ／ 未核</td><td>未核</td><td>—</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="<b>2026-06-01 新开</b>，复飞 1998 年停飞的航点；W26 改 787-10/A350 轮换" data-grp="新加坡"><td class="cn">杭州 ⇄ 新加坡</td><td><b>新航 SQ838/839（A350-900MH）</b></td><td>7</td><td>5h10（官方时刻）</td><td><b>2026-06-01 新开</b>，复飞 1998 年停飞的航点；W26 改 787-10/A350 轮换</td><td><span class="mini">新航新闻稿 2026-03-23；AeroRoutes</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">杭州 ⇄ 新加坡</td><td>酷航 TR（每日）· 东航 MU · 长龙 GJ · 厦航 MF</td><td>7 ／ 未核</td><td>未核</td><td>—</td><td><span class="mini">新航新闻稿；维基</span></td></tr>
+<tr class="tp" data-cn="贵阳" data-fo="新加坡" data-direct="1" data-wk="3" data-cat="对方航司" data-note="<b>2026-10-26 新开</b>；单程 S$158 起含税（≈$125），官方开航价" data-grp="新加坡"><td class="cn">贵阳 ⇄ 新加坡</td><td><b>酷航 TR130/131（A320neo）</b></td><td>3</td><td>4h25（官方时刻）</td><td><b>2026-10-26 新开</b>；单程 S$158 起含税（≈$125），官方开航价</td><td><span class="mini">酷航 2026-08-20；AeroRoutes</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s11">十一、迪拜<span class="zh">阿联酋航空；南航全停</span></h2>
+<div class="kicker">阿联酋航空灾前大陆 5 城 49 班/周。flydubai 无大陆航点。南航四条迪拜线全部停飞至 2027-03-27。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="北京" data-fo="迪拜" data-direct="1" data-wk="14" data-cat="对方航司" data-note="10/4–10/31 EK306/307 改 A380" data-grp="迪拜"><td class="cn">北京 ⇄ 迪拜</td><td><b>阿联酋航空 EK306/307 · EK308/309</b></td><td>14（7/1 起恢复每日 2 班，777-300ER）</td><td>去 7h35／回 8h20（计）</td><td>10/4–10/31 EK306/307 改 A380</td><td><span class="mini">AeroRoutes 2026-06-17、09-04</span></td></tr>
+<tr class="tp" data-cn="北京" data-fo="迪拜" data-direct="1" data-wk="0" data-cat="中国航司" data-note="现班次未核" data-grp="迪拜"><td class="cn">北京 ⇄ 迪拜</td><td>国航 CA941/942</td><td>未核（3 月复航期 1 班）</td><td>未核</td><td>现班次未核</td><td><span class="mini">TTG 2026-03-09</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="迪拜" data-direct="1" data-wk="7" data-cat="对方航司" data-note="⚠️ 第二班是否恢复未核" data-grp="迪拜"><td class="cn">上海 ⇄ 迪拜</td><td>阿联酋航空 EK304/305</td><td>7（A380，5 月口径）</td><td>未核</td><td>⚠️ 第二班是否恢复未核</td><td><span class="mini">AeroRoutes 2026-04-27</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="迪拜" data-direct="1" data-wk="0" data-cat="中国航司" data-note="—" data-grp="迪拜"><td class="cn">上海 ⇄ 迪拜</td><td>东航 MU245/246（另加班 MU7467/7468）</td><td>未核（聚合站标「季节性」）</td><td>未核</td><td>—</td><td><span class="mini">TTG；flightconnections</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="迪拜" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="迪拜"><td class="cn">广州 ⇄ 迪拜</td><td>阿联酋航空 EK362/363</td><td>7（A380）</td><td>未核</td><td>—</td><td><span class="mini">AeroRoutes 2026-04-27</span></td></tr>
+<tr class="tp" data-cn="深圳" data-fo="迪拜" data-direct="1" data-wk="7" data-cat="对方航司" data-note="7–9 月维持" data-grp="迪拜"><td class="cn">深圳 ⇄ 迪拜</td><td><b>阿联酋航空 EK328/329</b></td><td>7（6/1 起每日，777-200LR）</td><td>≈7h45–7h55（计）</td><td>7–9 月维持</td><td><span class="mini">AeroRoutes 2026-06-06、07-13</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="迪拜" data-direct="1" data-wk="7" data-cat="对方航司" data-note="<b>2025-07-30 新开</b>" data-grp="迪拜"><td class="cn">杭州 ⇄ 迪拜</td><td>阿联酋航空 EK310/311（A350-900）</td><td>7（5 月由 5 增至 7）</td><td>未核</td><td><b>2025-07-30 新开</b></td><td><span class="mini">AeroRoutes 2026-04-27</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="迪拜" data-direct="1" data-wk="0" data-cat="中国航司" data-note="—" data-grp="迪拜"><td class="cn">杭州 ⇄ 迪拜</td><td>国航 CA</td><td>未核（2023 开航时 3 班）</td><td>未核</td><td>—</td><td><span class="mini">维基 DXB 航点表</span></td></tr>
+</tbody></table></div><h3>已停飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="广州" data-fo="迪拜" data-direct="0" data-wk="0" data-cat="已停飞" data-note="与 TTG 3 月复航报道冲突，以 AeroRoutes 7 月为准" data-grp="迪拜"><td class="cn">广州 ⇄ 迪拜</td><td><s>南航 CZ383/384（A330，原 2×日）</s></td><td>停飞并关闭预订至 2027-03-27</td><td>—</td><td>与 TTG 3 月复航报道冲突，以 AeroRoutes 7 月为准</td><td><span class="mini">AeroRoutes 2026-07-31</span></td></tr>
+<tr class="tp gone" data-cn="深圳" data-fo="迪拜" data-direct="0" data-wk="0" data-cat="已停飞" data-note="—" data-grp="迪拜"><td class="cn">深圳 ⇄ 迪拜</td><td><s>南航 CZ（3 班）</s></td><td>停飞至 2027-03-27</td><td>—</td><td>—</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp gone" data-cn="武汉" data-fo="迪拜" data-direct="0" data-wk="0" data-cat="已停飞" data-note="—" data-grp="迪拜"><td class="cn">武汉 ⇄ 迪拜</td><td><s>南航 CZ（787-8，3 班）</s></td><td>停飞至 2027-03-27</td><td>—</td><td>—</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp gone" data-cn="乌鲁木齐" data-fo="迪拜" data-direct="0" data-wk="0" data-cat="已停飞" data-note="—" data-grp="迪拜"><td class="cn">乌鲁木齐 ⇄ 迪拜</td><td><s>南航 CZ（737 MAX 8，1 班）</s></td><td>停飞至 2027-03-27</td><td>—</td><td>—</td><td><span class="mini">同上</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s12">十二、多哈<span class="zh">卡航六城；中方航司为零</span></h2>
+<div class="kicker"><b>卡航大陆通航 6 城</b>，合计约 38 班/周。中方航司飞多哈目前为零。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="北京" data-fo="多哈" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="多哈"><td class="cn">北京 ⇄ 多哈</td><td><b>卡航 QR892/893（大兴）</b></td><td>7（777-300ER）；10/25 起换 A350-1000</td><td>去 7h40／回 9h20（计）</td><td>—</td><td><span class="mini">AeroRoutes 2026-04-13、08-26</span></td></tr>
+<tr class="tp" data-cn="上海" data-fo="多哈" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="多哈"><td class="cn">上海 ⇄ 多哈</td><td><b>卡航 QR870/871 · QR872/869（777-300ER）</b></td><td>14（6/1 起 10，6/30 起 14）</td><td>去 9h10／回 8h50（计）</td><td>—</td><td><span class="mini">AeroRoutes 2026-05-26</span></td></tr>
+<tr class="tp" data-cn="广州" data-fo="多哈" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="多哈"><td class="cn">广州 ⇄ 多哈</td><td>卡航 QR874 等（777-300ER）</td><td>7</td><td>≈7h15（聚合站）</td><td>—</td><td><span class="mini">AeroRoutes 2026-04-13</span></td></tr>
+<tr class="tp" data-cn="杭州" data-fo="多哈" data-direct="1" data-wk="4" data-cat="对方航司" data-note="—" data-grp="多哈"><td class="cn">杭州 ⇄ 多哈</td><td>卡航 QR890（A350-900）</td><td>4（5/17 复航）</td><td>≈9h15（聚合站）</td><td>—</td><td><span class="mini">AeroRoutes 2026-04-13</span></td></tr>
+<tr class="tp" data-cn="成都" data-fo="多哈" data-direct="1" data-wk="3" data-cat="对方航司" data-note="—" data-grp="多哈"><td class="cn">成都 ⇄ 多哈</td><td>卡航 QR860（787-8）</td><td>3（5/16 复航）</td><td>≈7h40（聚合站）</td><td>—</td><td><span class="mini">同上</span></td></tr>
+<tr class="tp" data-cn="重庆" data-fo="多哈" data-direct="1" data-wk="3" data-cat="对方航司" data-note="—" data-grp="多哈"><td class="cn">重庆 ⇄ 多哈</td><td>卡航 QR880（A350-900）</td><td>3（5/18 复航）</td><td>≈8h05（聚合站）</td><td>—</td><td><span class="mini">同上</span></td></tr>
+</tbody></table></div><h3>已停飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="北京" data-fo="多哈" data-direct="0" data-wk="0" data-cat="已停飞" data-note="QR 代码共享；开航年份待核" data-grp="多哈"><td class="cn">北京 ⇄ 多哈</td><td><s>南航 CZ（大兴，A330，3 班）</s></td><td>停飞并关闭预订至 2027-03-27</td><td>—</td><td>QR 代码共享；开航年份待核</td><td><span class="mini">AeroRoutes 2026-07-31</span></td></tr>
+<tr class="tp gone" data-cn="广州" data-fo="多哈" data-direct="0" data-wk="0" data-cat="已停飞" data-note="—" data-grp="多哈"><td class="cn">广州 ⇄ 多哈</td><td><s>南航 CZ（787-9，原每日）</s></td><td>停飞至 2027-03-27</td><td>—</td><td>—</td><td><span class="mini">同上</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s13">十三、中转枢纽<span class="zh">迪拜与多哈在中国 → 欧非南美通道上的角色</span></h2>
+<div class="kicker">两家对华策略一致：<b>少量自营门户 ＋ 联运/代码共享喂中国腹地</b>。</div>
+
+<div class="tblwrap"><table class="wide" style="min-width:760px">
+<thead><tr><th style="width:150px">项</th><th>迪拜 · 阿联酋航空</th><th>多哈 · 卡塔尔航空</th></tr></thead><tbody>
+<tr><td class="cn">枢纽体量</td><td>2025 年 95.2M 旅客，国际客运世界第一，近半为中转客</td><td>夏季表 160+ 目的地、140 班/日</td></tr>
+<tr><td class="cn">灾后恢复</td><td>8 月座位 93%、网络 98%</td><td>6/16 恢复 85%；冬季航班量再削 7%</td></tr>
+<tr><td class="cn">中国门户</td><td>5 城 ＋ 与长龙联运喂 22 个二线点</td><td>6 城；与南航代码共享（南航自营线现停）</td></tr>
+<tr><td class="cn">通往南美</td><td>圣保罗、布宜诺斯艾利斯</td><td>圣保罗每日；波哥大/加拉加斯推迟至 2026-11</td></tr>
+<tr><td class="cn">中国旅客经此中转量</td><td colspan="2"><b>未核</b>，无公开机构数据</td></tr>
+</tbody></table></div>
+<div class="callout"><b>去南美怎么转（本页的口）</b>：迪拜和多哈都直飞圣保罗，从深圳或广州出发这是「中国 → 海湾 → 南美」一条线。另外三个口：<b>美国</b>（迈阿密、洛杉矶、达拉斯，见美国出发家族的美南美页）、<b>马德里</b>（见中欧页）、<b>亚的斯亚贝巴</b>（见中非页）。</div>
+
+<h2 id="s14">十四、签证<span class="zh">九地对中国公民的门槛</span></h2>
+
+<div class="tblwrap"><table class="wide" style="min-width:700px">
+<thead><tr><th>目的地</th><th>政策</th><th>生效／变化</th><th>来源</th></tr></thead><tbody>
+<tr><td class="cn">🇰🇷 韩国</td><td><b>中国对韩单方面免签 30 天</b>；韩国对中国团客免签 15 天（试行）；济州个人免签 30 天</td><td>对韩免签延至 2026-12-31；⚠️ 团客免签延期待官方复核</td><td>驻济州总领馆 08-13；韩媒</td></tr>
+<tr><td class="cn">🇯🇵 日本</td><td><b>仍需签证，2026-07-01 起费用涨五倍</b></td><td>2026-07-01</td><td>日本驻上海总领馆</td></tr>
+<tr><td class="cn">🇹🇭 泰国</td><td><b>永久互免签</b>，⚠️ <b>2026-09-15 起免签停留 60 天缩至 30 天</b></td><td>2024-03-01 起；2026-09-15 缩短</td><td>VisasNews</td></tr>
+<tr><td class="cn">🇻🇳 越南</td><td><b>无免签</b>（仅富国岛直飞不出岛 30 天）；电子签单次 25 美元/多次 50 美元</td><td>—</td><td>⚠️ 官方原文未核</td></tr>
+<tr><td class="cn">🇲🇾 马来西亚</td><td><b>互免签</b>，每次 30 天、180 天内累计 90 天</td><td>2025-07-17</td><td>中国驻马使馆 FAQ</td></tr>
+<tr><td class="cn">🇮🇩 印尼</td><td><b>无免签</b>，落地签约 32 美元 30 天，可延一次</td><td>—</td><td>⚠️ 官方原文未核</td></tr>
+<tr><td class="cn">🇸🇬 新加坡</td><td><b>互免签</b>，≤30 日</td><td>2024-02-09</td><td>外交部</td></tr>
+<tr><td class="cn">🇦🇪 阿联酋</td><td><b>互免签</b></td><td>2018-01-16</td><td>外交部领事司</td></tr>
+<tr><td class="cn">🇶🇦 卡塔尔</td><td><b>免签</b></td><td>2018-12</td><td>⚠️ 未取到外交部原文</td></tr>
+</tbody></table></div>
+
+<h2 id="s15">十五、口径<span class="zh">两批数据两种口径，先分清</span></h2>
+
+<div class="callout"><div class="ch">两批口径</div>
+<ul class="clean">
+  <li><b>第一批（日本、新加坡、迪拜、多哈）</b>：班次单方向/周；日本日方航司为官网时刻表，日本中方航司为 S26 计划/可售口径（实飞取消率 31%）；海湾为分批复航后口径。</li>
+  <li><b>第二批（韩国、泰国、越南、马来西亚、印尼）</b>：班次＝<b>中→目的地单向、2026-09 第 2 周计划</b>，全部来自 flightsfrom.com 单一聚合库，<b>未与航司官网交叉核</b>；该库可能把代码共享号计入 ⇒ 含 KE2xxx／OZ3xxx／MU2xxx 段的行视为上限。回程未核。</li>
+  <li>时长「计」＝起降时刻扣时差；聚合库时长＝其给出的最长计划时长。</li>
+  <li>票价只列有来源者（JAL 官网、酷航贵阳开航价），<b>其余一律未核</b>。</li>
+</ul></div>
+
+<div class="callout warncall"><div class="ch">已知未核项（不得当事实用）</div>
+<ul class="clean">
+  <li>全日空全线时长与票价；中方航司日本线票价与 W26/27 完整班次。</li>
+  <li>新加坡线除新航 9 城与酷航贵阳杭州外，中方航司及酷航其余城市的班次。</li>
+  <li>迪拜：阿联酋上海第二班是否恢复；国航东航海航川航各线现班次。多哈：南航大兴开航年份；厦航 2027-01 只见聚合站。南航广州–迪拜 3 月复航报道 vs 7 月「关闭预订」冲突，采后者。</li>
+  <li><b>岘港</b>：聚合库零直飞 vs 报道多条，未核。<b>深圳–普吉</b>：4 班 vs 0，未核。烟台–仁川、武汉–曼谷、北京–廊曼、大兴–雅加达：页面被拦截，未核。</li>
+  <li>韩国团客免签延期至 12-31：仅韩文媒体，法务部页面未改，待复核。越南与印尼签证：签证代办站汇编，官方原文未核。</li>
+  <li>吉祥大兴–济州、韩亚成都重庆大连增班：备案 vs 当周聚合库不一致，现状未核。</li>
+  <li>中韩双边航权数字（仁川–上海 63 等）是否按单方承运人计、含双向与否，来源未说明。</li>
+  <li>LCC 在「中国–东南亚」子市场的份额无来源；中国旅客经迪拜多哈中转的量化数据无来源。</li>
+</ul></div>
+
+<div class="note"><b>本页不做什么</b>：不比酒店 · 不比刷卡倍率 · 不排申卡。
+<b>会过期的部分</b>：日本线随中日政治走，海湾线随战后复航走，韩国免签政策年底到期，泰国 9/15 缩免签期，<b>用之前当天复核</b>；航季换季另行重核。</div>
+<footer>中国出发 · 美国出发 · 欧洲出发 三家族同一设计系统，与 <a href="https://chronicle.klay-wang.com">Market Chronicle</a> 同源 · 班次按每方向每周 · 逐线票价一律未核 · 换季重核</footer>
+</div>
+
+<script>
+var d=document.documentElement;
+try{var s=localStorage.getItem('fm-theme');if(s)d.setAttribute('data-theme',s);}catch(e){}
+/* 切换＝看板同款（源=访客看板.html←klay-site theme-toggle.js）：旋转+圆形揭示；钥匙仍是 fm-theme */
+(function(){var btn=document.getElementById('darkBtn');
+function set(t){d.setAttribute('data-theme',t);try{localStorage.setItem('fm-theme',t);}catch(e){}}
+btn.addEventListener('click',function(){
+  var next=d.getAttribute('data-theme')==='dark'?'light':'dark';
+  btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spin');
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce||typeof document.startViewTransition!=='function'){set(next);return;}
+  var r=btn.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+  var end=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+  document.startViewTransition(function(){set(next);}).ready.then(function(){
+    d.animate({clipPath:['circle(0px at '+x+'px '+y+'px)','circle('+end+'px at '+x+'px '+y+'px)']},
+      {duration:500,easing:'cubic-bezier(0.16, 1, 0.3, 1)',pseudoElement:'::view-transition-new(root)'});
+  }).catch(function(){});
+});})();
+/* 目录 */
+(function(){
+  var toc=document.getElementById('toc'),bk=document.getElementById('tocBack'),bt=document.getElementById('tocBtn');
+  var items=[].slice.call(toc.querySelectorAll('.toc-item'));
+  function close(){toc.classList.remove('open');bk.classList.remove('show');}
+  bt.addEventListener('click',function(){toc.classList.toggle('open');bk.classList.toggle('show');});
+  bk.addEventListener('click',close);
+  items.forEach(function(a){a.addEventListener('click',close);});
+  var hs=[].slice.call(document.querySelectorAll('[id^="s"]')).filter(function(e){return /^s\d$/.test(e.id);});
+  function spy(){
+    var cur=hs.length?hs[0].id:'';
+    hs.forEach(function(h){ if(h.getBoundingClientRect().top<130) cur=h.id; });
+    items.forEach(function(a){ a.classList.toggle('active',a.getAttribute('href')==='#'+cur); });
+  }
+  window.addEventListener('scroll',spy,{passive:true}); spy();
+})();
+
+</script>
+<script>/* 星空滚动淡出：看板同款 data-scrolled 开关 */
+addEventListener("scroll",function(){
+  if(scrollY>40){document.documentElement.setAttribute("data-scrolled","");}
+  else{document.documentElement.removeAttribute("data-scrolled");}
+},{passive:true});</script>
+<script>
+/* 流向图适配器：解析本页所有 tr.tp（data-cn / data-fo / data-direct / data-wk / data-cat），渲染走 FlowViz。
+   数据只有表格一份，改表即改图。 */
+(function(){
+  var root=document.getElementById('flow'); if(!root||!window.FlowViz) return;
+  var CAT={'中国航司':'var(--accent)','对方航司':'var(--teal,#00A86B)','已停飞':'var(--muted-soft,#9B8E7C)'};
+  var FOFLAG={'东京羽田':'🇯🇵','东京成田':'🇯🇵','大阪':'🇯🇵','名古屋':'🇯🇵','福冈':'🇯🇵','札幌':'🇯🇵','冲绳':'🇯🇵','广岛':'🇯🇵','首尔仁川':'🇰🇷','首尔金浦':'🇰🇷','济州':'🇰🇷','釜山':'🇰🇷','曼谷':'🇹🇭','曼谷廊曼':'🇹🇭','普吉':'🇹🇭','清迈':'🇹🇭','河内':'🇻🇳','胡志明':'🇻🇳','岘港':'🇻🇳','芽庄':'🇻🇳','吉隆坡':'🇲🇾','槟城':'🇲🇾','亚庇':'🇲🇾','雅加达':'🇮🇩','巴厘岛':'🇮🇩','新加坡':'🇸🇬','迪拜':'🇦🇪','多哈':'🇶🇦'};
+  var OFLAG='🇨🇳', OGRP='中国', DGRP='境外';
+  function txt(td){ return (td.textContent||'').replace(/\s+/g,' ').trim(); }
+  function num(t){ var m=String(t).match(/\d[\d,]*/); return m?+m[0].replace(/,/g,''):0; }
+  var rows=[];
+  document.querySelectorAll('tr.tp').forEach(function(tr){
+    var td=tr.querySelectorAll('td'); if(td.length<3) return;
+    var cn=tr.getAttribute('data-cn'), fo=tr.getAttribute('data-fo'); if(!cn||!fo) return;
+    rows.push({cn:cn,fo:fo,direct:tr.getAttribute('data-direct')==='1',
+      wk:+(tr.getAttribute('data-wk')||0), cat:tr.getAttribute('data-cat')||'其他', grp:tr.getAttribute('data-grp')||'',
+      car:txt(td[1]),fq:txt(td[2]),dur:txt(td[3]||''),note:tr.getAttribute('data-note')||''});
+  });
+  if(!rows.length) return;
+  var dir='both', grp='';
+  var GRPS=[]; rows.forEach(function(r){ if(r.grp&&GRPS.indexOf(r.grp)<0) GRPS.push(r.grp); });
+  function tip(r,d){ return '<b>'+(d==='out'?r.cn+' → '+r.fo:r.fo+' → '+r.cn)+'</b>'+
+    (r.direct?'':'🔴 已退出 · ')+r.cat+(r.wk?' · '+r.wk+' 班/周（每方向）':'')+'<br>'+r.car+' · '+r.fq+
+    (r.dur&&r.dur!=='未核'?' · '+r.dur:'')+(r.note?'<br>'+r.note:''); }
+  function build(){
+    var legs=[];
+    rows.filter(function(r){ return !grp||r.grp===grp; }).forEach(function(r){
+      if(dir!=='in') legs.push({o:r.cn,d:r.fo,r:r,side:'out'});
+      if(dir!=='out') legs.push({o:r.fo,d:r.cn,r:r,side:'in'});
+    });
+    var O=[],D=[];
+    legs.forEach(function(l){ if(O.indexOf(l.o)<0)O.push(l.o); if(D.indexOf(l.d)<0)D.push(l.d); });
+    var isCN=function(x){ return rows.some(function(r){return r.cn===x;}); };
+    /* 先按国别分组（中国城市在前），组内再按航线数降序 —— 否则分组标签会来回跳 */
+    var srt=function(arr,k){ return function(a,b){ var ca=isCN(a),cb=isCN(b); if(ca!==cb) return ca?-1:1;
+      return arr.filter(function(l){return l[k]===b;}).length-arr.filter(function(l){return l[k]===a;}).length; }; };
+    O.sort(srt(legs,'o')); D.sort(srt(legs,'d'));
+    var nodes=[],edges=[];
+    O.forEach(function(o){ var ls=legs.filter(function(l){return l.o===o;}), dn=ls.filter(function(l){return l.r.direct;}).length;
+      nodes.push({id:'o:'+o,col:0,label:(isCN(o)?OFLAG+' ':(FOFLAG[o]||'')+' ')+o,sub:ls.length+' 条（直飞 '+dn+'）',group:isCN(o)?'— '+OGRP+'出发 —':'— '+DGRP+'出发 —'}); });
+    D.forEach(function(d){ var ls=legs.filter(function(l){return l.d===d;});
+      var w=ls.reduce(function(a,l){return a+(l.r.wk||0);},0);
+      nodes.push({id:'d:'+d,col:1,label:(isCN(d)?OFLAG+' ':(FOFLAG[d]||'')+' ')+d,sub:ls.length+' 条进港'+(w?' · '+w+' 班/周':''),group:isCN(d)?'— 飞往'+OGRP+' —':'— '+DGRP+' —'}); });
+    legs.forEach(function(l){ var w=Math.max(.6,(l.r.wk||1)/7);
+      edges.push({a:'o:'+l.o,b:'d:'+l.d,w:w,width:Math.max(1,Math.min(9,.9*w+1)),cat:l.r.cat,
+        color:CAT[l.r.cat]||'var(--muted)',dash:!l.r.direct,opacity:l.r.direct?.5:.32,tip:tip(l.r,l.side)}); });
+    return {id:'rf',W:1100,top:44,bottom:20,isolate:'touch',particleDiv:7,
+      cols:[{label:'出发',x:[40,244],kind:'card',h:38,gap:4,groupGap:16},
+            {label:'目的地（按航线数排）',x:[866,1064],kind:'card',h:34,gap:3,groupGap:16}],
+      legend:Object.keys(CAT).map(function(k){return {k:k,label:k,color:CAT[k]};}),
+      controls:[{type:'pills',label:'方向',options:[{v:'out',label:OGRP+'→'+DGRP},{v:'in',label:DGRP+'→'+OGRP},{v:'both',label:'双向'}],value:dir,
+                 onChange:function(v){dir=v;h.update(build());}}]
+        .concat(GRPS.length>1?[{type:'pills',label:'目的地',options:[{v:'',label:'全部'}].concat(GRPS.map(function(g){return {v:g,label:g};})),value:grp,
+                 onChange:function(v){grp=v;h.update(build());}}]:[])
+        .concat([{type:'legend',label:'承运方'},{type:'reset',onReset:function(){dir='both';grp='';h.update(build());}}]),
+      nodes:nodes,edges:edges,
+      note:function(st){ var nd=st.lit.filter(function(e){return !e.dash;}).length;
+        return '亮着 <b>'+st.lit.length+'</b> 条（直飞 '+nd+'）'+(st.sel?'，只看 <b>'+st.sel.slice(2)+'</b>':'')+
+        '。<b>线粗＝每周班次</b>，虚线＝需中转。班次按每方向计，两个方向相同。渲染＝FlowViz v'+FlowViz.version+'。'; }};
+  }
+  var h=FlowViz.embed(root,build()); window.rfFlow=h;
+})();
+</script>
+</body>
+</html>
