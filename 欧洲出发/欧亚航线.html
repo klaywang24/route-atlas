@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>欧亚航线 · 海湾之年</title>
+<!-- THEME:START --><style id="fm-theme">
+/* 五件套共用的调色板。唯一实现，别在各文件里再写一份 :root。
+   改这里之后跑一次： python3 build_theme.py
+   （--check 只读比对，已挂 pre-commit）
+
+   为什么要有它：抽取之前这套色散在 5 份 HTML 里、三种不同形状（20/15/16 个变量），
+   而且已经漂了——万豪选择器与航司选择器的 accent-bg/gold-soft/teal-soft 三个
+   透明度值与另外两份不一致（.04 vs .05、.12 vs .14、.10 vs .12）。没人会发现。
+
+   深色三条规则的分工：
+     :root                                        亮色，基准
+     @media(prefers-color-scheme) :not([light])   跟随系统
+     :root[data-theme="dark"]                     手动切换，优先级最高
+   五份 HTML 都有手动开关（localStorage fm-theme，2026-08-17 起统一），设了值就走第三条；
+   没设值时跟随系统。同一把钥匙，任一页切换、五页同步。 */
+
+:root{
+ --bg:#F1ECDF;--bg-card:#EBE5D6;--bg-card-hover:#E5DECC;--bg-deep:#E0D8C2;
+ --ink:#1A1410;--ink-soft:#3D352D;--muted:#6B5D4F;--muted-soft:#9B8E7C;
+ --accent:#FF2400;--accent-deep:#CC1D00;--accent-soft:rgba(255,36,0,.08);--accent-bg:rgba(255,36,0,.04);
+ --gold:#B8893E;--gold-soft:rgba(184,137,62,.12);
+ --teal:#00A86B;--teal-soft:rgba(0,168,107,.10);
+ --moss:#00A86B;--moss-soft:rgba(0,168,107,.10);
+ --rule:#C8BFA8;--rule-soft:#D8D0BA;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}}
+:root[data-theme="dark"]{
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}
+</style><!-- THEME:END -->
+
+<script>/* 主题先定死 light/dark（看板同款：图标显隐靠 html[data-theme] 精确匹配，属性必须始终显式；也防 FOUC）。钥匙仍是 fm-theme。 */
+(function(){var d=document.documentElement,s=null;try{s=localStorage.getItem("fm-theme");}catch(e){}
+d.setAttribute("data-theme",s||((window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"));})();</script>
+<!-- flowviz:runtime v1.0.0 -->
+<style id="fv-css">
+.fv{position:relative}
+.fv .fv-wrap{position:relative;background:var(--bg-card,#f5f2ea);border:1px solid var(--rule,#c8bfa8);border-radius:10px;overflow:hidden}
+.fv svg{display:block;width:100%;height:auto}
+.fv canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.fv .fv-col{fill:var(--muted-soft,#9b8e7c);font-size:10px;letter-spacing:.14em;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-grp{fill:var(--muted-soft,#9b8e7c);font-size:10px;letter-spacing:.12em;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-edge{fill:none;stroke-linecap:butt;transition:stroke-opacity .2s;cursor:pointer}
+.fv .fv-edge.dash{stroke-dasharray:5 5}
+.fv .fv-edge.dim{stroke-opacity:.05!important}
+.fv .fv-node rect{cursor:pointer}
+.fv .fv-node.card rect{fill:var(--bg,#f1ecdf);stroke:var(--rule,#c8bfa8);rx:6}
+.fv .fv-node.bar rect{stroke:none}
+.fv .fv-node text{fill:var(--ink,#1a1410);font-size:11.5px;font-family:'Noto Sans SC','IBM Plex Sans',sans-serif;pointer-events:none;paint-order:stroke;stroke:var(--bg-card,#f5f2ea);stroke-width:3px;stroke-linejoin:round}
+.fv .fv-node.card text{stroke:none;font-weight:600;font-size:12px}
+.fv .fv-node text.sm{fill:var(--muted,#6b5d4f);font-size:10px;font-weight:400;font-family:ui-monospace,Menlo,monospace}
+.fv .fv-node text.best{font-weight:700}
+.fv .fv-node.on rect{stroke:var(--accent,#a0392f);stroke-width:1.6}
+.fv .fv-node.dim rect,.fv .fv-node.dim text,.fv .fv-node.dim image{opacity:.28}
+.fv .fv-tip{position:absolute;pointer-events:none;background:var(--ink,#1a1410);color:var(--bg,#f1ecdf);font-size:12px;line-height:1.55;padding:7px 10px;border-radius:6px;max-width:330px;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:5}
+.fv .fv-tip b{display:block;font-size:12.5px;margin-bottom:2px}
+.fv .fv-ctl{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 8px;font-size:12px}
+.fv .fv-ctl .lab{color:var(--muted,#6b5d4f);margin-right:4px}
+.fv .fv-ctl .cp{display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:2px 9px;border:1px solid var(--rule,#c8bfa8);border-radius:999px;color:var(--ink-soft,#3d352d);background:var(--bg-card,#f5f2ea)}
+.fv .fv-ctl .cp.off{opacity:.32}
+.fv .fv-ctl .cp i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.fv .fv-ctl .cp i.d{background:repeating-linear-gradient(90deg,currentColor 0 3px,transparent 3px 6px)!important}
+.fv .fv-note{font-size:12.5px;color:var(--muted,#6b5d4f);line-height:1.7;margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){.fv canvas{display:none}}
+</style>
+<script id="fv-runtime" data-v="1.0.0">
+/* FlowViz embed runtime v1.0.0 —— 唯一实现，由 ~/.claude/skills/flow-viz/flowviz.py 注入，别手改（tools/inject_flowviz.py --check 会报） */
+(function(){
+  if(window.FlowViz && window.FlowViz.version==="1.0.0") return;
+  function el(t,a,p){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+  function embed(root, spec){
+    root.classList.add('fv'); root.innerHTML='';
+    var ctl=document.createElement('div'); ctl.className='fv-ctl'; root.appendChild(ctl);
+    var wrap=document.createElement('div'); wrap.className='fv-wrap'; root.appendChild(wrap);
+    var svg=el('svg',{xmlns:'http://www.w3.org/2000/svg'},wrap); var cv=document.createElement('canvas'); wrap.appendChild(cv);
+    var tip=document.createElement('div'); tip.className='fv-tip'; tip.hidden=true; wrap.appendChild(tip);
+    var note=document.createElement('p'); note.className='fv-note'; root.appendChild(note);
+    var S=null, nodes={}, edges=[], sel=null, catOff={}, parts=[], running=false, last=0, sc=1, dpr=1, W=1100, H=0;
+    var ctx=cv.getContext('2d');
+    function fit(){var r=svg.getBoundingClientRect();dpr=window.devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.width=r.width+'px';cv.style.height=r.height+'px';sc=r.width/W*dpr;}
+    function mv(ev){var b=wrap.getBoundingClientRect();var x=ev.clientX-b.left+12,y=ev.clientY-b.top+12;if(x>b.width-340)x-=360;tip.style.left=x+'px';tip.style.top=y+'px';}
+    function showTip(ev,html){if(!html){tip.hidden=true;return;}tip.innerHTML=html;tip.hidden=false;mv(ev);}
+    function colOf(n){return S.cols[n.col];}
+    function layout(){
+      W=S.W||1100; var top=S.top||34, bottom=S.bottom||20; nodes={}; var colH=[];
+      S.cols.forEach(function(c,ci){ var ns=S.nodes.filter(function(n){return n.col===ci;}); var y=top, lastG=null;
+        if(c.kind==='bar'){ var total=ns.reduce(function(a,n){return a+(n.cnt||0);},0)||1, n=ns.length, minH=c.minH||11, gap=c.gap||3;
+          var avail=(S.H||900)-top-bottom-gap*(n-1), extra=Math.max(0,avail-minH*n);
+          ns.forEach(function(nd){ var h=minH+extra*(nd.cnt||0)/total; nodes[nd.id]={n:nd,x0:c.x[0],x1:c.x[1],y0:y,y1:y+h,cnt:nd.cnt||0,off0:0,off1:0}; y+=h+gap; });
+        } else { var h=c.h||40, gap=c.gap||10, gg=c.groupGap||18;
+          ns.forEach(function(nd){ if(nd.group!==undefined&&lastG!==null&&nd.group!==lastG) y+=gg; if(nd.group!==undefined) lastG=nd.group;
+            nodes[nd.id]={n:nd,x0:c.x[0],x1:c.x[1],y0:y,y1:y+h,cnt:nd.cnt||0,off0:0,off1:0}; y+=h+gap; }); }
+        colH.push(y+bottom); });
+      H=Math.max.apply(null,colH.concat([S.H||0]));
+      S.cols.forEach(function(c,ci){ if(c.kind==='bar'||c.center===false) return; var ns=S.nodes.filter(function(n){return n.col===ci;}); if(!ns.length) return; var y0=nodes[ns[0].id].y0, y1=nodes[ns[ns.length-1].id].y1; var d=(H-bottom-(y1-y0))/2-y0+top/2; if(d>0) ns.forEach(function(n){nodes[n.id].y0+=d;nodes[n.id].y1+=d;}); });
+    }
+    function litEdge(e){ if(e.lit===false) return false; if(e.cat&&catOff[e.cat]) return false;
+      if(sel){ if(S.isolate==='path') return !!e._path; return e.a===sel||e.b===sel; } return true; }
+    function markPath(){ edges.forEach(function(e){e._path=false;}); if(!sel||S.isolate!=='path') return;
+      var ok=function(e){return !(e.cat&&catOff[e.cat])&&e.lit!==false;};
+      var q=[sel], seen={}; seen[sel]=1; while(q.length){ var id=q.shift(); edges.forEach(function(e){ if(ok(e)&&e.a===id&&!e._path){ e._path=true; if(!seen[e.b]){seen[e.b]=1;q.push(e.b);} } }); }
+      q=[sel]; seen={}; seen[sel]=1; while(q.length){ var id2=q.shift(); edges.forEach(function(e){ if(ok(e)&&e.b===id2&&!e._path){ e._path=true; if(!seen[e.a]){seen[e.a]=1;q.push(e.a);} } }); } }
+    function render(){
+      layout(); edges=S.edges.slice(); markPath();
+      var h='';
+      S.cols.forEach(function(c){ if(!c.label) return; var left=c.labelSide==='left'; h+='<text class="fv-col" x="'+(left?c.x[1]:c.x[0])+'" y="'+((S.top||34)-16)+'" text-anchor="'+(left?'end':'start')+'">'+esc(c.label)+'</text>'; });
+      S.cols.forEach(function(c,ci){ var ns=S.nodes.filter(function(n){return n.col===ci;}); var lastG=null; ns.forEach(function(nd){ if(nd.group!==undefined&&nd.group!==lastG&&lastG!==null){ var p=nodes[nd.id]; h+='<text class="fv-grp" x="'+(c.labelSide==='left'?p.x1+8:p.x0)+'" y="'+(p.y0-6)+'">'+esc(nd.group)+'</text>'; } if(nd.group!==undefined) lastG=nd.group; }); });
+      edges.forEach(function(e){ var A=nodes[e.a], B=nodes[e.b]; if(!A||!B){ e._x0=null; return; } var ca=colOf(A.n), cb=colOf(B.n);
+        if(ca.kind==='bar'){ var hs=(A.y1-A.y0)*(e.w||0)/(A.cnt||1); e._ys=A.y0+A.off0+hs/2; e._hs=hs; A.off0+=hs; } else { e._ys=(A.y0+A.y1)/2; e._hs=null; }
+        if(cb.kind==='bar'){ var ht=(B.y1-B.y0)*(e.w||0)/(B.cnt||1); e._yt=B.y0+B.off1+ht/2; e._ht=ht; B.off1+=ht; } else { e._yt=(B.y0+B.y1)/2; e._ht=null; }
+        e._x0=A.x1+2; e._x1=B.x0-2;
+        e._w=e.width!=null?e.width:((e._hs!=null||e._ht!=null)?Math.max(.8,((e._hs!=null?e._hs:e._ht)+(e._ht!=null?e._ht:e._hs))/2):Math.max(1,Math.min(9,.45*(e.w||1)+.8))); });
+      var sorted=edges.slice().sort(function(a,b){ var la=litEdge(a)?1:0, lb=litEdge(b)?1:0; if(la!==lb) return la-lb; return ((b.rank||99)-(a.rank||99)); });
+      sorted.forEach(function(e){ if(e._x0==null) return; var cx=(e._x0+e._x1)/2, lit=litEdge(e); var A=nodes[e.a]; var op=e.opacity!=null?e.opacity:(colOf(A.n).kind==='bar'?.34:.5);
+        h+='<path class="fv-edge'+(e.dash?' dash':'')+(lit?'':' dim')+'" data-i="'+edges.indexOf(e)+'" d="M'+e._x0+' '+e._ys.toFixed(1)+' C'+cx+' '+e._ys.toFixed(1)+' '+cx+' '+e._yt.toFixed(1)+' '+e._x1+' '+e._yt.toFixed(1)+'" stroke="'+(e.color||'var(--rule)')+'" stroke-opacity="'+(lit?op:.05)+'" stroke-width="'+e._w.toFixed(2)+'"></path>'; });
+      var touched={}; edges.forEach(function(e){ if(e._x0!=null&&litEdge(e)){touched[e.a]=1;touched[e.b]=1;} });
+      var filtering=sel||Object.keys(catOff).some(function(k){return catOff[k];});
+      S.nodes.forEach(function(nd){ var p=nodes[nd.id], c=colOf(nd), card=c.kind!=='bar', dim=nd.dim||(filtering&&!touched[nd.id]&&nd.id!==sel);
+        h+='<g class="fv-node '+(card?'card':'bar')+(nd.id===sel?' on':'')+(dim?' dim':'')+'" data-id="'+esc(nd.id)+'">';
+        if(card){ h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'"'+(nd.color?' style="stroke:'+nd.color+'"':'')+'></rect>';
+          var tx=p.x0+10, my=(p.y0+p.y1)/2; if(nd.logo){ h+='<image href="'+nd.logo+'" x="'+(p.x0+9)+'" y="'+(my-11)+'" width="22" height="22"></image>'; tx=p.x0+38; }
+          if(nd.icon){ h+='<text x="'+(p.x0+10)+'" y="'+(my+4.5)+'" font-size="12" style="stroke:none">'+nd.icon+'</text>'; tx=p.x0+30; }
+          h+='<text x="'+tx+'" y="'+(nd.sub?my-3:my+4)+'">'+esc(nd.label)+'</text>'; if(nd.sub) h+='<text class="sm" x="'+tx+'" y="'+(my+12)+'">'+esc(nd.sub)+'</text>';
+          if(nd.best){ if(nd.bestLogo) h+='<image href="'+nd.bestLogo+'" x="'+(p.x1-8-(nd.bestW||60)-18)+'" y="'+(my-7)+'" width="14" height="14"></image>'; h+='<text class="best" x="'+(p.x1-8)+'" y="'+(my+4)+'" text-anchor="end"'+(nd.bestColor?' style="fill:'+nd.bestColor+'"':'')+'>'+esc(nd.best)+'</text>'; }
+        } else { h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'" fill="'+(nd.color||'var(--muted)')+'" opacity=".85"></rect>';
+          var side=c.labelSide||'right', lx=side==='left'?p.x0-7:p.x1+7;
+          h+='<text x="'+lx+'" y="'+((p.y0+p.y1)/2+4)+'" text-anchor="'+(side==='left'?'end':'start')+'">'+esc(nd.label)+(nd.cnt!=null?' <tspan class="sm">'+nd.cnt+'</tspan>':'')+'</text>'; }
+        h+='</g>'; });
+      svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML=h;
+      var byId={}; S.nodes.forEach(function(n){byId[n.id]=n;});
+      svg.querySelectorAll('.fv-node').forEach(function(g){ var id=g.getAttribute('data-id'), nd=byId[id];
+        g.addEventListener('click',function(){ if(S.isolate==='none') return; sel=(sel===id?null:id); render(); if(S.onSelect) S.onSelect(sel); });
+        g.addEventListener('mouseenter',function(ev){ if(nd&&nd.tip) showTip(ev,nd.tip); }); g.addEventListener('mousemove',mv); g.addEventListener('mouseleave',function(){tip.hidden=true;}); });
+      svg.querySelectorAll('.fv-edge').forEach(function(p){ var e=edges[+p.getAttribute('data-i')];
+        p.addEventListener('mouseenter',function(ev){ if(e.tip) showTip(ev,e.tip); }); p.addEventListener('mousemove',mv); p.addEventListener('mouseleave',function(){tip.hidden=true;}); });
+      note.innerHTML=typeof S.note==='function'?S.note({sel:sel,catOff:catOff,lit:edges.filter(litEdge)}):(S.note||'');
+      renderCtl(); setupParts(); fit(); requestAnimationFrame(fit);
+    }
+    function renderCtl(){ ctl.innerHTML=''; (S.controls||[]).forEach(function(c){
+      if(c.type==='legend'){ if(c.label){var lab=document.createElement('span'); lab.className='lab'; lab.textContent=c.label; ctl.appendChild(lab);}
+        (S.legend||[]).forEach(function(L){ var s=document.createElement('span'); s.className='cp'+(catOff[L.k]?' off':''); s.innerHTML='<i class="'+(L.dash?'d':'')+'" style="background:'+L.color+';color:'+L.color+'"></i>'+esc(L.label); s.addEventListener('click',function(){ catOff[L.k]=!catOff[L.k]; render(); }); ctl.appendChild(s); }); }
+      else if(c.type==='pills'){ if(c.label){var lab2=document.createElement('span'); lab2.className='lab'; lab2.textContent=c.label; ctl.appendChild(lab2);}
+        c.options.forEach(function(o){ var b=document.createElement('button'); b.className='pill'+(o.v===c.value?' on':''); b.textContent=o.label; b.addEventListener('click',function(){ c.value=o.v; if(c.onChange) c.onChange(o.v); }); ctl.appendChild(b); }); }
+      else if(c.type==='reset'){ var r=document.createElement('button'); r.className='pill'; r.style.marginLeft='auto'; r.textContent=c.label||'重置'; r.addEventListener('click',function(){ sel=null; catOff={}; if(c.onReset) c.onReset(); render(); }); ctl.appendChild(r); }
+      else if(c.type==='html'){ var d=document.createElement('span'); d.innerHTML=c.html; ctl.appendChild(d); } }); }
+    function setupParts(){ parts=[]; if(S.particles===false) return; svg.querySelectorAll('.fv-edge:not(.dim):not(.dash)').forEach(function(p){ var e=edges[+p.getAttribute('data-i')]; var n=Math.min(6,Math.max(1,Math.round((e.w||1)/(S.particleDiv||7)))); var col=getComputedStyle(p).stroke; for(var i=0;i<n;i++) parts.push({p:p,len:p.getTotalLength(),t:Math.random(),sp:0.00008+Math.random()*0.00005,col:col}); }); }
+    function frame(ts){ if(!running) return; var dt=Math.min(40,ts-(last||ts)); last=ts; ctx.clearRect(0,0,cv.width,cv.height);
+      parts.forEach(function(pt){ pt.t=(pt.t+pt.sp*dt)%1; ctx.fillStyle=pt.col; for(var k=0;k<4;k++){ var tt=pt.t-k*.012; if(tt<0) continue; var q=pt.p.getPointAtLength(tt*pt.len); ctx.globalAlpha=.9*(1-k*.22); ctx.beginPath(); ctx.arc(q.x*sc,q.y*sc,(2.6-k*.4)*dpr,0,Math.PI*2); ctx.fill(); } });
+      ctx.globalAlpha=1; requestAnimationFrame(frame); }
+    var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduce&&'IntersectionObserver' in window){ new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ if(!running){running=true;last=0;requestAnimationFrame(frame);} } else running=false; }); },{threshold:.05}).observe(wrap); }
+    window.addEventListener('resize',fit);
+    var api={update:function(sp){ S=sp; render(); return api; }, select:function(id){ sel=id; render(); }, state:function(){ return {sel:sel,catOff:catOff}; }, reset:function(){ sel=null; catOff={}; render(); }, el:root};
+    return api.update(spec);
+  }
+  window.FlowViz={version:"1.0.0", embed:embed};
+})();
+</script>
+<!-- /flowviz:runtime -->
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans SC',-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+  font-size:16.5px;line-height:1.92;-webkit-font-smoothing:antialiased;padding:36px 18px 60px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-family:Georgia,'Songti SC',serif;font-size:clamp(25px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.15}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{font-size:13px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em;margin:6px 0 18px}
+h2{font-family:Georgia,'Songti SC',serif;font-size:22px;font-weight:600;margin:38px 0 6px;scroll-margin-top:18px}
+h2 .zh{font-size:14px;color:var(--muted);font-weight:400;margin-left:10px}
+h3{font-size:16px;margin:22px 0 8px}
+.kicker{font-size:13px;color:var(--muted);margin:0 0 14px}
+.kicker b,.kicker strong{color:var(--ink)}
+#tocBtn{position:fixed;top:14px;left:14px;z-index:170;width:38px;height:38px;border-radius:999px;line-height:1;
+  border:1px solid var(--rule);background:var(--bg-card);color:var(--ink);font-size:15px;cursor:pointer}
+#darkBtn{position:fixed;top:14px;right:14px;z-index:170;width:38px;height:38px;border-radius:999px;line-height:1;
+  border:1px solid var(--rule);background:var(--bg-card);color:var(--ink);font-size:15px;cursor:pointer}
+.toc-sidebar{position:fixed;top:0;left:-236px;width:220px;height:100vh;background:var(--bg-card);border-right:1px solid var(--rule);
+  z-index:160;padding:22px 12px;transition:left .28s;overflow-y:auto}
+.toc-sidebar.open{left:0}
+.toc-brand{font-family:Georgia,serif;font-size:22px;font-weight:700;padding:0 10px}
+.toc-brand .dot{color:var(--accent)}
+.toc-zh{font-size:12px;color:var(--muted);padding:0 10px;margin-bottom:14px}
+.toc-item{display:block;padding:7px 10px;border-radius:7px;color:var(--ink-soft);text-decoration:none;font-size:13.5px;margin:2px 0}
+.toc-item:hover{background:var(--bg-deep);color:var(--accent)}
+.toc-item.active{background:var(--accent);color:#fff;font-weight:600}
+.toc-item .tn{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--muted-soft);margin-right:8px;letter-spacing:.05em}
+.toc-item.active .tn{color:rgba(255,255,255,.72)}
+.toc-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:155;opacity:0;pointer-events:none;transition:opacity .3s}
+.toc-backdrop.show{opacity:1;pointer-events:auto}
+@media(min-width:1200px){body{padding-left:236px}.toc-sidebar{left:0}#tocBtn{display:none}}
+/* ── 胶囊分段控件（2026-08-24 统一：母版＝房券去哪儿住.html·Klay 08-17 选定的那套）
+   原实现是「一颗一颗独立药丸」（各自带边框、gap 8px、选中填 accent）；
+   母版是「一条分段控件」：外层一个底槽，内层无边框，选中靠 bg-card 抬升。
+   只换样式不动 class 名与 DOM，JS 的 .on 切换逻辑原样可用。 ── */
+.pills{display:inline-flex;gap:0;flex-wrap:wrap;background:var(--bg-deep);
+  border:1px solid var(--rule);border-radius:10px;padding:3px;margin:14px 0 16px;
+  max-width:100%;overflow-x:auto;vertical-align:middle}
+.pill{font:inherit;font-size:14px;padding:7px 16px;border-radius:7px;cursor:pointer;
+  background:transparent;color:var(--ink-soft);border:none;transition:.14s;white-space:nowrap}
+.pill:hover{color:var(--ink)}
+.pill.on{background:var(--bg-card);color:var(--ink);font-weight:700;
+  box-shadow:0 1px 3px rgba(0,0,0,.13)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;background:var(--bg-card);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+th{background:var(--bg-deep);color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.05em;text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.ok{color:var(--moss);font-weight:600}
+.warn{color:var(--gold);font-weight:600}
+.chipset{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11.5px;color:var(--ink-soft);border:1px solid var(--rule);border-radius:6px;padding:1px 8px;white-space:nowrap;background:var(--bg)}
+img.lgo{width:18px;height:18px;border-radius:4px;background:#fff;padding:2px;vertical-align:-4px;margin-right:6px}
+.mk{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.08em;border:1.5px solid var(--ink-soft);color:var(--ink-soft);
+  border-radius:4px;padding:0 5px;margin-right:6px;vertical-align:1px;font-family:Georgia,serif}
+.callout{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0;font-size:14px}
+.callout b{color:var(--accent-deep)}
+.note{margin-top:30px;font-size:13px;color:var(--muted);border-left:3px solid var(--rule);padding-left:14px}
+.note li{margin:4px 0 4px 16px}
+.mxt td.mx{text-align:center;font-weight:700}
+.mxt th,.mxt td{border:1px solid var(--rule-soft)}
+.mxt .gb{border-left:2px solid var(--rule)}
+.mxt th[colspan]{text-align:center}
+.mxt .dim{color:var(--muted-soft)}
+.mxt th.bh{font-size:11px;letter-spacing:0}
+.mxt td.cityjump{cursor:pointer;font-weight:600;color:var(--accent);white-space:nowrap}
+.mxt td.cityjump:hover{text-decoration:underline}
+.citypanel{display:none}
+.citypanel.on{display:block}
+.bo{font-size:13px;color:var(--muted);margin:8px 0 0}
+.bo b{color:var(--gold)}
+.cityintro{font-size:13.5px;color:var(--ink-soft);margin:2px 0 10px}
+footer{margin-top:44px;font-size:12px;color:var(--muted-soft);border-top:1px solid var(--rule);padding-top:14px}
+
+/* 日/夜切换＝访客看板同款（2026-08-26 移植，源=访客数据/访客看板.html←klay-site theme-toggle）：
+   太阳/月亮图标 + 按下回弹 + 图标旋转 + 圆形揭示。图标显隐靠 html[data-theme] 精确匹配，
+   属性由 head 内联脚本保证始终显式写 light/dark。 */
+html[data-theme="light"] .icon-sun{display:none}
+html[data-theme="dark"] .icon-moon{display:none}
+#darkBtn{display:inline-flex;align-items:center;justify-content:center}
+#darkBtn svg{transition:transform .2s cubic-bezier(.16,1,.3,1)}
+#darkBtn.spin svg{animation:icon-swap .5s cubic-bezier(.16,1,.3,1)}
+#darkBtn:active{transform:scale(.94)}
+@keyframes icon-swap{from{transform:rotate(-120deg) scale(.5);opacity:.3}to{transform:rotate(0) scale(1);opacity:1}}
+/* 圆形揭示：关掉浏览器默认淡入，只留 clip-path 那个圆 */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:0}
+::view-transition-new(root){z-index:1}
+@media (prefers-reduced-motion:reduce){#darkBtn.spin svg{animation:none}}
+
+/* 夜晚星空＝访客看板同款（2026-08-26 移植，源=访客数据/访客看板.html←klay-site globals.css §16）：
+   只在夜间亮，错峰淡入+闪烁，铺顶部一带，滚动后整块淡出；纯装饰不挡点击。
+   与母版唯一差异：z-index:-1（母版 z:0 再抬 .wrap；本站六页容器各异，负 z 一条搞定，
+   星星画在 body 背景之上、所有内容之下，效果同款）。 */
+.starfield{position:fixed;left:0;right:0;top:0;height:340px;overflow:hidden;pointer-events:none;z-index:-1}
+.star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:0;
+box-shadow:0 0 3px 1px rgba(255,255,255,.45);transition:opacity .5s ease;
+animation:twinkle 3.2s ease-in-out infinite;animation-play-state:paused}
+html[data-theme="dark"] .star{opacity:.85;animation-play-state:running}
+html[data-scrolled] .starfield{opacity:0;transition:opacity .3s ease}
+.star:nth-child(1){top:22%;left:14%;transition-delay:0.05s;animation-delay:0s}
+.star:nth-child(2){top:62%;left:24%;transition-delay:0.18s;animation-delay:0.7s}
+.star:nth-child(3){top:30%;left:38%;transition-delay:0.11s;animation-delay:0.3s}
+.star:nth-child(4){top:70%;left:52%;transition-delay:0.3s;animation-delay:1.1s}
+.star:nth-child(5){top:18%;left:60%;transition-delay:0.22s;animation-delay:0.5s}
+.star:nth-child(6){top:55%;left:72%;transition-delay:0.4s;animation-delay:0.9s}
+.star:nth-child(7){top:26%;left:84%;transition-delay:0.15s;animation-delay:0.2s}
+.star:nth-child(8){top:74%;left:90%;transition-delay:0.34s;animation-delay:1.3s}
+.star:nth-child(9){top:44%;left:47%;transition-delay:0.26s;animation-delay:0.6s}
+.star:nth-child(10){top:58%;left:6%;transition-delay:0.08s;animation-delay:0.4s}
+.star:nth-child(11){top:16%;left:30%;transition-delay:0.37s;animation-delay:1s}
+.star:nth-child(12){top:66%;left:34%;transition-delay:0.13s;animation-delay:1.5s}
+.star:nth-child(13){top:34%;left:8%;transition-delay:0.44s;animation-delay:0.15s}
+.star:nth-child(14){top:78%;left:18%;transition-delay:0.2s;animation-delay:0.85s}
+.star:nth-child(15){top:40%;left:66%;transition-delay:0.47s;animation-delay:1.7s}
+.star:nth-child(16){top:12%;left:78%;transition-delay:0.09s;animation-delay:0.45s}
+.star:nth-child(17){top:64%;left:95%;transition-delay:0.28s;animation-delay:1.2s}
+.star:nth-child(18){top:36%;left:93%;transition-delay:0.5s;animation-delay:0.05s}
+@keyframes twinkle{0%,100%{transform:scale(1);box-shadow:0 0 3px 1px rgba(255,255,255,.4)}
+50%{transform:scale(1.6);box-shadow:0 0 6px 2px rgba(255,255,255,.75)}}
+@media (prefers-reduced-motion: reduce){html[data-theme="dark"] .star{animation:none;opacity:.7}}
+</style>
+<style>
+/* 区域航线页专用（三张共用，生成器唯一实现） */
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+td.num,th.num{text-align:right;font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.mini{font-size:11.5px;color:var(--muted);display:block;line-height:1.5}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:5px;padding:1px 7px;white-space:nowrap}
+.b-ok{background:var(--moss-soft);color:var(--moss);border:1px solid var(--moss)}
+.b-warn{background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold)}
+.b-err{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.b-neu{background:var(--bg-deep);color:var(--muted);border:1px solid var(--rule)}
+tr.gone td{opacity:.62}
+tr.gone td:first-child{opacity:1}
+.tblwrap{overflow-x:auto;margin:12px 0}
+table.wide{min-width:940px}
+.cn{font-weight:600;white-space:nowrap}
+ul.clean{list-style:none;margin:12px 0}
+ul.clean li{position:relative;padding-left:15px;margin:8px 0;font-size:14.5px;line-height:1.85}
+ul.clean li:before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--rule)}
+.callout.okcall{background:var(--moss-soft);border-left-color:var(--moss)}
+.callout.okcall b{color:var(--moss)}
+.callout.warncall{background:var(--gold-soft);border-left-color:var(--gold)}
+.callout.warncall b{color:var(--gold)}
+#flow{margin:14px 0 6px}
+/* 家族切换条（三家族互相倒流的第一层） */
+.fam{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 18px;font-size:13px}
+.fam a{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid var(--rule);
+  background:var(--bg-card);color:var(--ink-soft);text-decoration:none;transition:.14s}
+.fam a:hover{border-color:var(--accent);color:var(--accent)}
+.fam a.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.fam .sep{color:var(--muted-soft);margin:0 2px}
+.fam .idx{margin-left:auto;color:var(--muted);font-size:12px}
+.mirror{display:inline-block;margin:0 0 6px 2px;font-size:13px;color:var(--accent);text-decoration:none;border-bottom:1px dashed var(--accent)}
+.mirror:hover{border-bottom-style:solid}
+</style>
+<body>
+<div class="starfield" aria-hidden="true"><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span></div>
+<button id="tocBtn" title="目录">☰</button>
+<button id="darkBtn" title="暗/亮" aria-label="Toggle dark mode"><svg class="icon-sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg><svg class="icon-moon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M20.6 14.6A8.6 8.6 0 0 1 9.4 3.4 9 9 0 1 0 20.6 14.6z"/></svg></button>
+<aside class="toc-sidebar" id="toc">
+  <div class="toc-brand">Eastward<span class="dot">.</span></div>
+  <div class="toc-zh">欧亚航线</div>
+  <a class="toc-item" href="#s1"><span class="tn">I</span>格局 · 海湾之年</a>
+  <a class="toc-item" href="#s2"><span class="tn">II</span>流向图</a>
+  <a class="toc-item" href="#s3"><span class="tn">III</span>泰国 · 曼谷 普吉</a>
+  <a class="toc-item" href="#s4"><span class="tn">IV</span>海湾 · 迪拜 阿布扎比 多哈</a>
+  <a class="toc-item" href="#s5"><span class="tn">V</span>印度</a>
+  <a class="toc-item" href="#s6"><span class="tn">VI</span>日本</a>
+  <a class="toc-item" href="#s7"><span class="tn">VII</span>新加坡</a>
+  <a class="toc-item" href="#s8"><span class="tn">VIII</span>东南亚 · 越南 印尼</a>
+  <a class="toc-item" href="#s9"><span class="tn">IX</span>印度洋 · 马累 科伦坡</a>
+  <a class="toc-item" href="#s10"><span class="tn">X</span>首尔</a>
+  <a class="toc-item" href="#s11"><span class="tn">XI</span>香港 · 台北</a>
+  <a class="toc-item" href="#s12"><span class="tn">XII</span>度假线 · 直飞还是中转</a>
+  <a class="toc-item" href="#s13"><span class="tn">XIII</span>2026 新开与停飞</a>
+  <a class="toc-item" href="#s14"><span class="tn">XIV</span>口径与未核</a>
+</aside>
+<div class="toc-backdrop" id="tocBack"></div>
+
+<div class="wrap">
+<nav class="fam"><a href="../中国出发/index.html">🇨🇳 中国出发</a><span class="sep">·</span><a href="../美国出发/index.html">🇺🇸 美国出发</a><span class="sep">·</span><a class="on" href="index.html">🇪🇺 欧洲出发</a><a class="idx" href="../index.html">全站首页 ↗</a></nav><h1>欧亚航线 · <em>海湾之年</em></h1>
+<a class="mirror" href="../中国出发/中亚航线.html">换个方向看 · 中国出发视角《中亚航线》 ↗</a>
+<div class="sub">EUROPE ⇄ ASIA（不含大陆）· 十个欧洲门户 × 十九个亚洲城市 · 2026 夏季 · 2026-09-11</div>
+<div class="kicker">欧洲人第一大洲际度假地是泰国，增速最快的是日本，而欧亚线一半以上的客流要经海湾或伊斯坦布尔转。<b>2026 的头号变量换成了海湾战争，俄领空退到第二</b>：卡塔尔航空 3 月砍 89% 班次，7 月停火破裂后多哈至今走限定走廊。🔴 <b>逐线票价一律未核</b>。中国大陆见《欧中航线》。</div>
+
+<h2 id="s1">一、格局<span class="zh">海湾战争、俄领空、谁接住了溢出</span></h2>
+<div class="kicker">先看这一节。欧亚线有两道墙：俄领空（2022 起，欧洲航司全被挡）和 2026 的海湾空域。</div>
+
+<div class="callout warncall"><div class="ch">🔴 2026 头号变量：海湾战争</div>
+<ul class="clean">
+  <li><b>2026-02-28</b> 美以对伊朗开战，卡塔尔/阿联酋/巴林/科威特/伊拉克/伊朗/约旦等八国领空关闭或限制。<b>卡塔尔航空 2/28–3/24 取消 4,929 班（占排班 89%）</b>；阿提哈德 3 月上旬取消 450+ 班。</li>
+  <li>海湾三大 4 月砍掉 <b>540 万座位、18,000+ 班</b>；5 月恢复到战前六成以上。5/3 阿联酋解除全部限制；卡塔尔 6/16 上线夏季全网 160+ 目的地。</li>
+  <li><b>7 月停火破裂</b>，伊朗对卡塔尔/阿联酋/巴林/科威特发动导弹与无人机攻击；EASA 把波斯湾冲突区警示延长至 <b>2026-09-30</b>。截至 9/2，多哈进出仍走限定走廊，<b>单程多 30 分钟到数小时</b>。</li>
+  <li>阿联酋航空历史份额：欧洲⇄亚洲客流 13%+、欧洲⇄澳新 31%+。海湾三家＋土航合计吃掉的欧亚中转份额<b>未核</b>（Cirium 原文抓不到）。</li>
+</ul></div>
+
+<div class="callout"><div class="ch">谁接住了溢出</div>
+<ul class="clean">
+  <li><b>土航</b>：卡塔尔停飞后成为亚太主要替代枢纽，8/21 宣布亚太运力未来数年增 15–20%（东京/曼谷/吉隆坡/新加坡加频）。</li>
+  <li><b>新航</b>：明确以「中东航司中断带来的需求」为由加欧洲运力，较 2024-06 航班 +20%、座位 +14%；10/25 起法兰克福 14→20、盖特威克 10→14、慕尼黑 7→10。</li>
+  <li><b>英航</b>：3 月临时加 7 班往返曼谷/新加坡；<b>印航</b>：3 月向欧洲/北美加投 78 班。</li>
+  <li>OAG 2026-09：<b>欧洲⇄亚太运力同比 +14.3%</b>（+120 万座至 930 万座），「欧洲航司持续重建亚洲长航线」。</li>
+</ul></div>
+
+<h3>俄领空绕飞代价（2022-02 起，仍在）</h3>
+<div class="tblwrap"><table class="wide" style="min-width:520px">
+<thead><tr><th>航线</th><th class="num">战前</th><th class="num">现在</th></tr></thead><tbody>
+<tr><td class="cn">芬航 赫尔辛基–东京</td><td class="num">9h</td><td class="num"><b>13h</b>（+4h）</td></tr>
+<tr><td class="cn">英航 伦敦–东京</td><td class="num">12h</td><td class="num">14h+（+2h）</td></tr>
+<tr><td class="cn">汉莎 法兰克福–首尔</td><td class="num">10h30</td><td class="num">13h（+2.5h）</td></tr>
+<tr><td class="cn">法航 巴黎–东京</td><td class="num">11h</td><td class="num">14h（+3h）</td></tr>
+<tr><td class="cn">日航 东京–伦敦</td><td class="num">11h30</td><td class="num"><b>16h</b>（+4.5h，反向极地航路）</td></tr>
+<tr><td class="cn">芬航 赫尔辛基–上海</td><td class="num">10h15</td><td class="num">14h15</td></tr>
+</tbody></table></div>
+<p class="kicker">叠加 2026 中东关闭：法兰克福–上海走南线（埃及/红海）约 12h，欧亚线普遍再 +1–2h。</p>
+
+<div class="callout"><div class="ch">芬航从「亚洲门户」的溃退</div>
+<p>战前商业模式＝经俄最快欧亚通道；亚洲运力已比 2022 前砍 <b>30%+</b>，今天只剩 12 个亚太航点，上海仅 4/周（冬 2）。CEO 2024-09 原话「exactly four years after the invasion, network rebalanced and restructured」。转向重心＝泰国（NW26 泰国合计 25 班/周）与北美。<b>英航</b>北京 2024-10 停；<b>维珍</b>上海 2024-10 停（最后一个远东航点），2026 转而新开首尔、普吉；<b>汉莎</b>慕尼黑–香港继续停飞，慕尼黑–新加坡 7→5。本页 <b>23 行在飞但频次未核</b>，流向图画细线。</p></div>
+
+<h2 id="s2">二、流向图<span class="zh">欧洲门户 → 亚洲</span></h2>
+<div class="kicker"><b>红线＝欧洲航司，绿线＝对方航司（含海湾三大、新航、印航等），灰虚线＝无直飞。</b>右上可按区域筛。</div>
+<div id="flow"></div>
+
+<h2 id="s3">三、泰国<span class="zh">欧洲人第一大洲际度假地</span></h2>
+<div class="kicker">十门户里九个有曼谷直飞，<b>马德里是唯一缺口</b>。泰航 NW26 是主力（欧洲 11 城）；普吉直飞只有芬航、法航（冬）、维珍（10/18 新开）、Norse 四家。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="曼谷" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">伦敦 ⇄ 曼谷</td><td><b>英航</b>（盖特威克，777-200ER）</td><td>夏 3 / NW26 6；2024-10-28 复飞</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="曼谷" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">伦敦 ⇄ 曼谷</td><td><b>泰航</b>（希思罗）· 长荣（台北–曼谷–伦敦经停）</td><td>泰航 14</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="曼谷" data-direct="1" data-wk="13" data-cat="欧洲航司" data-note="2026 夏加班" data-grp="泰国"><td class="cn">巴黎 ⇄ 曼谷</td><td><b>法航</b></td><td>最多 13</td><td>未核</td><td>2026 夏加班</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">巴黎 ⇄ 曼谷</td><td><b>泰航</b></td><td>7 → 12/1 起 14</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="曼谷" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">法兰克福 ⇄ 曼谷</td><td>汉莎</td><td>频次未核（NS26 变更表未列＝维持）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="曼谷" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">法兰克福 ⇄ 曼谷</td><td><b>泰航</b></td><td>14</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">慕尼黑 ⇄ 曼谷</td><td>汉莎（A350-900）</td><td>7（5/27–7/1 降 6）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">慕尼黑 ⇄ 曼谷</td><td>泰航</td><td>7 → 12/16 起 10</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">阿姆斯特丹 ⇄ 曼谷</td><td>荷航</td><td>7（5/12–6/15 加 3）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">阿姆斯特丹 ⇄ 曼谷</td><td><b>泰航</b>（A350）</td><td>7，<b>2026-07-01 复飞</b>（阔别近 30 年）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="曼谷" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">苏黎世 ⇄ 曼谷</td><td>瑞航 LX180</td><td>频次未核</td><td>10h55</td><td>—</td><td><span class="mini">[C]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">苏黎世 ⇄ 曼谷</td><td>泰航</td><td>7 → 2027-01-16 起 11</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="罗马" data-fo="曼谷" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="「运营原因」" data-grp="泰国"><td class="cn">罗马 ⇄ 曼谷</td><td>ITA</td><td>3（8 月 5）；5–6 月停两月</td><td>未核</td><td>「运营原因」</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="米兰" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="泰国"><td class="cn">米兰 ⇄ 曼谷</td><td>泰航</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="赫尔辛基" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="芬航转向重心：NW26 泰国合计 25 班/周" data-grp="泰国"><td class="cn">赫尔辛基 ⇄ 曼谷</td><td><b>芬航</b></td><td>夏 7 / 冬 18（一班续飞墨尔本，10/25 起）</td><td>11h25</td><td>芬航转向重心：NW26 泰国合计 25 班/周</td><td><span class="mini">[A][D]</span></td></tr>
+<tr class="tp" data-cn="哥本哈根" data-fo="曼谷" data-direct="1" data-wk="7" data-cat="对方航司" data-note="斯德哥尔摩、奥斯陆泰航亦各 7" data-grp="泰国"><td class="cn">哥本哈根 ⇄ 曼谷</td><td>泰航 · 北欧航空（冬季季节）</td><td>泰航 7；北欧航空未核</td><td>未核</td><td>斯德哥尔摩、奥斯陆泰航亦各 7</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="普吉" data-direct="1" data-wk="6" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">伦敦 ⇄ 普吉</td><td><b>维珍</b>（希思罗，787-9）· Norse（盖特威克）</td><td>维珍 3（<b>2026-10-18 新开</b>，常年）· Norse 3（NW26）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="普吉" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">巴黎 ⇄ 普吉</td><td>法航</td><td>最多 3（冬季旺季）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="赫尔辛基" data-fo="普吉" data-direct="1" data-wk="5" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">赫尔辛基 ⇄ 普吉</td><td><b>芬航</b></td><td>最多 5（冬季）；甲米另 2</td><td>11h30</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="斯德哥尔摩" data-fo="普吉" data-direct="1" data-wk="1" data-cat="欧洲航司" data-note="—" data-grp="泰国"><td class="cn">斯德哥尔摩 ⇄ 普吉</td><td>Norse</td><td>1（12/4 起）；奥斯陆同（12/8 起）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="普吉" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="苏黎世 Edelweiss、慕尼黑同未核" data-grp="泰国"><td class="cn">法兰克福 ⇄ 普吉</td><td>Condor / Discover</td><td>是否存在未核</td><td>未核</td><td>苏黎世 Edelweiss、慕尼黑同未核</td><td><span class="mini">—</span></td></tr>
+</tbody></table></div><h3>无直飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="马德里" data-fo="曼谷" data-direct="0" data-wk="0" data-cat="无直飞" data-note="泰航、伊比利亚均无；经多哈（卡塔尔 17/周）/迪拜（阿联酋 14）/新航经巴塞罗那（10/26 起）" data-grp="泰国"><td class="cn">马德里 ⇄ 曼谷</td><td><s>无</s></td><td>0</td><td>—</td><td>泰航、伊比利亚均无；经多哈（卡塔尔 17/周）/迪拜（阿联酋 14）/新航经巴塞罗那（10/26 起）</td><td><span class="mini">[C]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s4">四、海湾<span class="zh">欧亚中转的咽喉，2026 在打仗</span></h2>
+<div class="kicker">伦敦–迪拜阿联酋一家 84 班/周、伦敦–多哈卡塔尔 56 班/周。<b>2026 特有风险：海湾中转仍在 EASA 冲突区警示下（至 9/30），不能视为「已恢复正常」。</b></div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="迪拜" data-direct="1" data-wk="84" data-cat="对方航司" data-note="<b>伦敦–迪拜 84 班/周只算阿联酋一家</b>" data-grp="海湾"><td class="cn">伦敦 ⇄ 迪拜</td><td><b>阿联酋航空</b></td><td>希思罗 42（6×日 A380，冬曾 48）＋ 盖特威克 28 ＋ 斯坦斯特德 14</td><td>未核</td><td><b>伦敦–迪拜 84 班/周只算阿联酋一家</b></td><td><span class="mini">[A][D][S]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="迪拜" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="—" data-grp="海湾"><td class="cn">伦敦 ⇄ 迪拜</td><td>英航 · 维珍</td><td>英航冲突期停至 5/31，现频次未核；维珍临时停，复飞未核</td><td>未核</td><td>—</td><td><span class="mini">[A][D]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="迪拜" data-direct="1" data-wk="21" data-cat="对方航司" data-note="法航未核" data-grp="海湾"><td class="cn">巴黎 ⇄ 迪拜</td><td>阿联酋航空</td><td>21（从 17）</td><td>未核</td><td>法航未核</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="迪拜" data-direct="1" data-wk="0" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">法兰克福 ⇄ 迪拜</td><td>阿联酋航空（777 ＋ A380）</td><td>总班次未核</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="迪拜" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="海湾"><td class="cn">法兰克福 ⇄ 迪拜</td><td><b>汉莎</b>（A340/A330）</td><td>6/1 复飞；10/2 起 7</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="迪拜" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">慕尼黑 ⇄ 迪拜</td><td>阿联酋航空（777）</td><td>14（翻倍）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="迪拜" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">阿姆斯特丹 ⇄ 迪拜</td><td>阿联酋航空（A380）· 荷航</td><td>阿联酋未核 · 荷航 7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="迪拜" data-direct="1" data-wk="0" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">苏黎世 ⇄ 迪拜</td><td>阿联酋航空（A380）</td><td>频次未核</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="马德里" data-fo="迪拜" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">马德里 ⇄ 迪拜</td><td>阿联酋航空（A380 复）</td><td>14（从 11）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="罗马" data-fo="迪拜" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">罗马 ⇄ 迪拜</td><td>阿联酋航空</td><td>14（从 10）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="米兰" data-fo="迪拜" data-direct="1" data-wk="0" data-cat="对方航司" data-note="另有米兰–纽约第五航权" data-grp="海湾"><td class="cn">米兰 ⇄ 迪拜</td><td>阿联酋航空（A380）</td><td>频次未核</td><td>未核</td><td>另有米兰–纽约第五航权</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="阿布扎比" data-direct="1" data-wk="28" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">伦敦 ⇄ 阿布扎比</td><td><b>阿提哈德</b> · 英航</td><td>阿提哈德通常 4×日；英航未核</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="阿布扎比" data-direct="1" data-wk="21" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">巴黎 ⇄ 阿布扎比</td><td>阿提哈德（A380）</td><td>3×日（7/1–10/24）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="阿布扎比" data-direct="1" data-wk="14" data-cat="对方航司" data-note="汉莎法兰克福–阿布扎比停至 10/24" data-grp="海湾"><td class="cn">法兰克福 ⇄ 阿布扎比</td><td>阿提哈德</td><td>2×日（2025 计划）</td><td>未核</td><td>汉莎法兰克福–阿布扎比停至 10/24</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="阿布扎比" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">慕尼黑 ⇄ 阿布扎比</td><td>阿提哈德</td><td>2×日；NW26 砍第 3 班</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="阿布扎比" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">阿姆斯特丹 ⇄ 阿布扎比</td><td>阿提哈德</td><td>10/25 起 14</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="阿布扎比" data-direct="1" data-wk="14" data-cat="对方航司" data-note="马德里、罗马、米兰同" data-grp="海湾"><td class="cn">苏黎世 ⇄ 阿布扎比</td><td>阿提哈德</td><td>2×日（2025 计划）</td><td>未核</td><td>马德里、罗马、米兰同</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="多哈" data-direct="1" data-wk="56" data-cat="对方航司" data-note="7 月停火破裂后多哈进出仍走限定走廊，+30 分钟至数小时" data-grp="海湾"><td class="cn">伦敦 ⇄ 多哈</td><td><b>卡塔尔航空</b></td><td>希思罗 49（从 42）＋ 盖特威克 7（年初曾 2×日）</td><td>未核</td><td>7 月停火破裂后多哈进出仍走限定走廊，+30 分钟至数小时</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="多哈" data-direct="1" data-wk="14" data-cat="欧洲航司" data-note="—" data-grp="海湾"><td class="cn">伦敦 ⇄ 多哈</td><td>英航</td><td>14（冲突期停至 4/30）</td><td>未核</td><td>—</td><td><span class="mini">[D][A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="多哈" data-direct="1" data-wk="24" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">巴黎 ⇄ 多哈</td><td>卡塔尔航空</td><td>夏 24 / 冬 21</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="多哈" data-direct="1" data-wk="11" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">阿姆斯特丹 ⇄ 多哈</td><td>卡塔尔航空</td><td>11（从 7）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="马德里" data-fo="多哈" data-direct="1" data-wk="24" data-cat="对方航司" data-note="—" data-grp="海湾"><td class="cn">马德里 ⇄ 多哈</td><td>卡塔尔航空 · 伊比利亚</td><td>卡塔尔 17（从 14）· 伊比利亚 7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="多哈" data-direct="1" data-wk="0" data-cat="对方航司" data-note="慕尼黑、苏黎世、罗马、米兰同" data-grp="海湾"><td class="cn">法兰克福 ⇄ 多哈</td><td>卡塔尔航空</td><td>频次未核（在 6/16 网络内）</td><td>未核</td><td>慕尼黑、苏黎世、罗马、米兰同</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s5">五、印度<span class="zh">新德里 · 孟买</span></h2>
+<div class="kicker">伦敦–德里英航 21 ＋ 维珍 14 ＋ 印航 10 ＝ 45/周。印航 2025-04 起失去巴基斯坦领空，6–8 月砍欧洲线，9/1 恢复 145 班/周；CEO 表态下一步扩中欧（法兰克福/苏黎世/维也纳）。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="新德里" data-direct="1" data-wk="35" data-cat="欧洲航司" data-note="—" data-grp="印度"><td class="cn">伦敦 ⇄ 新德里</td><td><b>英航</b>（787，3×日）· <b>维珍</b>（2×日）</td><td>英航 21 · 维珍 14</td><td>未核</td><td>—</td><td><span class="mini">[A][D]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="新德里" data-direct="1" data-wk="10" data-cat="对方航司" data-note="印航 2025-04 起失去巴基斯坦领空；6–8 月减班，<b>9/1 恢复 145 班/周</b>" data-grp="印度"><td class="cn">伦敦 ⇄ 新德里</td><td><b>印航</b> AI111/112 ＋ AI2015/16</td><td>7 ＋ 3 ＝ 10（24/周是 2025 夏数字）</td><td>未核</td><td>印航 2025-04 起失去巴基斯坦领空；6–8 月减班，<b>9/1 恢复 145 班/周</b></td><td><span class="mini">[S][A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="新德里" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="—" data-grp="印度"><td class="cn">巴黎 ⇄ 新德里</td><td>法航（换大机型）</td><td>频次未核</td><td>未核</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="新德里" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="印度"><td class="cn">巴黎 ⇄ 新德里</td><td>印航</td><td>夏 7（从 2×日砍）；冬恢复未核</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="新德里" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="印度"><td class="cn">法兰克福 ⇄ 新德里</td><td><b>汉莎</b>（787-9 Allegris）</td><td>7（6/2–7/4 降 5）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="新德里" data-direct="1" data-wk="0" data-cat="对方航司" data-note="—" data-grp="印度"><td class="cn">法兰克福 ⇄ 新德里</td><td>印航 AI2025/26（777）</td><td>频次未核</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="新德里" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="印航未核" data-grp="印度"><td class="cn">阿姆斯特丹 ⇄ 新德里</td><td>荷航</td><td>7</td><td>未核</td><td>印航未核</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="新德里" data-direct="1" data-wk="3" data-cat="对方航司" data-note="—" data-grp="印度"><td class="cn">苏黎世 ⇄ 新德里</td><td>瑞航 · 印航</td><td>瑞航未核 · 印航夏 3（从 4），冬加</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="米兰" data-fo="新德里" data-direct="1" data-wk="5" data-cat="对方航司" data-note="—" data-grp="印度"><td class="cn">米兰 ⇄ 新德里</td><td>印航（787-8）</td><td>5（从 6）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="罗马" data-fo="新德里" data-direct="1" data-wk="4" data-cat="对方航司" data-note="—" data-grp="印度"><td class="cn">罗马 ⇄ 新德里</td><td>印航 · ITA</td><td>印航 4（3/25 恢复），8 月每日；ITA 8 月每日，常态未核</td><td>未核</td><td>—</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="哥本哈根" data-fo="新德里" data-direct="1" data-wk="4" data-cat="对方航司" data-note="维也纳印航夏 3" data-grp="印度"><td class="cn">哥本哈根 ⇄ 新德里</td><td>印航（787-8）</td><td>4（夏砍 3）</td><td>未核</td><td>维也纳印航夏 3</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="赫尔辛基" data-fo="新德里" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="—" data-grp="印度"><td class="cn">赫尔辛基 ⇄ 新德里</td><td>芬航</td><td>频次未核（在网络内）</td><td>未核</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="孟买" data-direct="1" data-wk="14" data-cat="欧洲航司" data-note="维珍伦敦–班加罗尔 6/1 起 7→13" data-grp="印度"><td class="cn">伦敦 ⇄ 孟买</td><td><b>维珍</b>（6/1 起 A350）· 英航</td><td>维珍 14；英航未核</td><td>未核</td><td>维珍伦敦–班加罗尔 6/1 起 7→13</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="孟买" data-direct="1" data-wk="0" data-cat="对方航司" data-note="—" data-grp="印度"><td class="cn">伦敦 ⇄ 孟买</td><td>印航 AI131/130 ＋ AI129/128（7/1 起 787）</td><td>频次未核</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="孟买" data-direct="1" data-wk="5" data-cat="对方航司" data-note="—" data-grp="印度"><td class="cn">法兰克福 ⇄ 孟买</td><td>印航（8/1 起 787-8）· 汉莎</td><td>印航 5；汉莎未核</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="孟买" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="印度"><td class="cn">慕尼黑 ⇄ 孟买</td><td><b>汉莎</b></td><td>7（5/24–6/21 降 6）；7/1–10/23 A380</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="孟买" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="印度"><td class="cn">阿姆斯特丹 ⇄ 孟买</td><td>荷航</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="孟买" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="苏黎世瑞航同未核" data-grp="印度"><td class="cn">巴黎 ⇄ 孟买</td><td>法航（换大机型）</td><td>频次未核</td><td>未核</td><td>苏黎世瑞航同未核</td><td><span class="mini">[A]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s6">六、日本<span class="zh">东京 · 大阪 · 增速最快的目的地</span></h2>
+<div class="kicker">欧洲八国赴日 2024→2025 +27%（日元弱）。英航伦敦–羽田 3/25 起 2 班/日；芬航赫尔辛基仍是北欧去日本最短的口（羽田＋成田＋大阪＋名古屋）。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="东京" data-direct="1" data-wk="14" data-cat="欧洲航司" data-note="俄领空绕飞：战前 12h" data-grp="日本"><td class="cn">伦敦 ⇄ 东京</td><td><b>英航</b>（羽田，787-8）</td><td>14（从 10，3/25 起）</td><td>14h+</td><td>俄领空绕飞：战前 12h</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="东京" data-direct="1" data-wk="14" data-cat="对方航司" data-note="日航东京–伦敦反向极地航路 +4.5h" data-grp="日本"><td class="cn">伦敦 ⇄ 东京</td><td><b>日航</b> JL041/042 · JL043/044（羽田）· 全日空</td><td>日航 14（10/1 起 041/042 换 A350-1000）；全日空未核</td><td>去程约 16h</td><td>日航东京–伦敦反向极地航路 +4.5h</td><td><span class="mini">[S][A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="东京" data-direct="1" data-wk="15" data-cat="欧洲航司" data-note="战前 11h" data-grp="日本"><td class="cn">巴黎 ⇄ 东京</td><td><b>法航</b>（羽田）</td><td>最多 15</td><td>约 14h</td><td>战前 11h</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="东京" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="日本"><td class="cn">巴黎 ⇄ 东京</td><td>日航（羽田，9/1 起 A350-1000）· 全日空</td><td>日航 7；全日空未核</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="东京" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="慕尼黑汉莎/全日空同未核" data-grp="日本"><td class="cn">法兰克福 ⇄ 东京</td><td>汉莎 · 全日空（羽田）</td><td>频次均未核</td><td>未核</td><td>慕尼黑汉莎/全日空同未核</td><td><span class="mini">—</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="东京" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="日本"><td class="cn">阿姆斯特丹 ⇄ 东京</td><td>荷航（成田）</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="东京" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="—" data-grp="日本"><td class="cn">苏黎世 ⇄ 东京</td><td>瑞航（成田）</td><td>频次未核</td><td>未核</td><td>—</td><td><span class="mini">—</span></td></tr>
+<tr class="tp" data-cn="马德里" data-fo="东京" data-direct="1" data-wk="4" data-cat="欧洲航司" data-note="—" data-grp="日本"><td class="cn">马德里 ⇄ 东京</td><td>伊比利亚（成田）</td><td>4（2024-10 开航）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="罗马" data-fo="东京" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="米兰全日空未核" data-grp="日本"><td class="cn">罗马 ⇄ 东京</td><td>ITA（羽田，A350）</td><td>3（二四六）</td><td>约 12h</td><td>米兰全日空未核</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="赫尔辛基" data-fo="东京" data-direct="1" data-wk="21" data-cat="欧洲航司" data-note="芬航战前 9h，现 13h；名古屋另 4、大阪夏 7–10" data-grp="日本"><td class="cn">赫尔辛基 ⇄ 东京</td><td><b>芬航</b>（羽田 7 ＋ 成田夏 7/冬 3）· 日航（羽田 9–10 月每日）</td><td>芬航 14；日航 7（9–10 月）</td><td>13h25</td><td>芬航战前 9h，现 13h；名古屋另 4、大阪夏 7–10</td><td><span class="mini">[A][D]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="大阪" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="—" data-grp="日本"><td class="cn">巴黎 ⇄ 大阪</td><td>法航</td><td>最多 3</td><td>未核</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="大阪" data-direct="1" data-wk="5" data-cat="欧洲航司" data-note="—" data-grp="日本"><td class="cn">慕尼黑 ⇄ 大阪</td><td>汉莎（A350）</td><td>5（全季）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="大阪" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="—" data-grp="日本"><td class="cn">阿姆斯特丹 ⇄ 大阪</td><td>荷航</td><td>3</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="赫尔辛基" data-fo="大阪" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="日本"><td class="cn">赫尔辛基 ⇄ 大阪</td><td>芬航</td><td>夏 7–10 / 冬 3</td><td>13h05</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s7">七、新加坡<span class="zh">新航吃掉海湾溢出</span></h2>
+<div class="kicker">新航从欧洲 12 城接，伦敦两场 38 班/周；10/25 起法兰克福加到 20。荷航阿姆斯特丹–新加坡同机续飞巴厘。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="新加坡" data-direct="1" data-wk="38" data-cat="对方航司" data-note="新航以「中东航司中断」为由加欧洲运力：较 2024-06 航班 +20%" data-grp="新加坡"><td class="cn">伦敦 ⇄ 新加坡</td><td><b>新航</b>（希思罗 4×日 A350/A380 ＋ 盖特威克 10 → 10/25 起 14）</td><td>38；曼彻斯特另 7</td><td>未核</td><td>新航以「中东航司中断」为由加欧洲运力：较 2024-06 航班 +20%</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="新加坡" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="3 月冲突期临时加 7 班往返曼谷/新加坡" data-grp="新加坡"><td class="cn">伦敦 ⇄ 新加坡</td><td>英航</td><td>频次未核</td><td>未核</td><td>3 月冲突期临时加 7 班往返曼谷/新加坡</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="新加坡" data-direct="1" data-wk="21" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">巴黎 ⇄ 新加坡</td><td>新航 · 法航</td><td>新航 11 · 法航最多 10</td><td>未核</td><td>—</td><td><span class="mini">[D][A]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="新加坡" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">法兰克福 ⇄ 新加坡</td><td><b>新航</b>（777，A380 撤）· 汉莎</td><td>新航 14 → 10/25 起 20；汉莎未核</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="新加坡" data-direct="1" data-wk="12" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">慕尼黑 ⇄ 新加坡</td><td>新航 · 汉莎</td><td>新航 7 → 10/26 起 10 · 汉莎 5（从 7，全季）</td><td>未核</td><td>—</td><td><span class="mini">[D][S]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="新加坡" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">阿姆斯特丹 ⇄ 新加坡</td><td>新航 · 荷航（同机续飞巴厘）</td><td>新航 7 → 10（8/1）→ 7（10/23）· 荷航 7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">苏黎世 ⇄ 新加坡</td><td>新航 · 瑞航 LX176</td><td>新航 7；瑞航未核</td><td>未核</td><td>—</td><td><span class="mini">[D][C]</span></td></tr>
+<tr class="tp" data-cn="米兰" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">米兰 ⇄ 新加坡</td><td>新航</td><td>7（10/25 起独立运力）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="罗马" data-fo="新加坡" data-direct="1" data-wk="3" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">罗马 ⇄ 新加坡</td><td>新航</td><td>3</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="马德里" data-fo="新加坡" data-direct="1" data-wk="5" data-cat="对方航司" data-note="经停巴塞罗那，非直飞" data-grp="新加坡"><td class="cn">马德里 ⇄ 新加坡</td><td>新航（经巴塞罗那）</td><td>5（<b>10/26 新开</b>）；巴塞罗那直飞 5</td><td>未核</td><td>经停巴塞罗那，非直飞</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="哥本哈根" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="新加坡"><td class="cn">哥本哈根 ⇄ 新加坡</td><td>新航</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="赫尔辛基" data-fo="新加坡" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="比战前长 90 分钟" data-grp="新加坡"><td class="cn">赫尔辛基 ⇄ 新加坡</td><td>芬航</td><td>7</td><td>去 12h35／回 13h40</td><td>比战前长 90 分钟</td><td><span class="mini">[A]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s8">八、越南 · 印尼<span class="zh">越航铺欧洲，巴厘零直飞</span></h2>
+<div class="kicker">越航现 8 个欧洲城市 12 条直飞（6/16 新开阿姆斯特丹）；<b>没有任何欧洲门户直飞巴厘</b>，鹰航只飞雅加达–阿姆斯特丹。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="河内" data-direct="1" data-wk="3" data-cat="对方航司" data-note="—" data-grp="越南"><td class="cn">伦敦 ⇄ 河内</td><td>越航 VN55（787）</td><td>3（一三日）</td><td>未核</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="河内" data-direct="1" data-wk="4" data-cat="对方航司" data-note="胡志明越航未核；法航巴黎–胡志明 3" data-grp="越南"><td class="cn">巴黎 ⇄ 河内</td><td>越航 VN11（A350）</td><td>4（一二四六）</td><td>未核</td><td>胡志明越航未核；法航巴黎–胡志明 3</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="胡志明" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="—" data-grp="越南"><td class="cn">巴黎 ⇄ 胡志明</td><td>法航</td><td>3</td><td>未核</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="河内" data-direct="1" data-wk="7" data-cat="对方航司" data-note="胡志明未核" data-grp="越南"><td class="cn">法兰克福 ⇄ 河内</td><td>越航 VN37（787）</td><td>7</td><td>未核</td><td>胡志明未核</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="河内" data-direct="1" data-wk="0" data-cat="对方航司" data-note="—" data-grp="越南"><td class="cn">慕尼黑 ⇄ 河内</td><td>越航</td><td>频次未核（2024-10 开）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="米兰" data-fo="河内" data-direct="1" data-wk="3" data-cat="对方航司" data-note="2025-07-01 开" data-grp="越南"><td class="cn">米兰 ⇄ 河内</td><td>越航（787）</td><td>3（二五六）</td><td>未核</td><td>2025-07-01 开</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="河内" data-direct="1" data-wk="3" data-cat="对方航司" data-note="越航现 8 个欧洲城市 12 条直飞" data-grp="越南"><td class="cn">阿姆斯特丹 ⇄ 河内</td><td><b>越航</b>（A350）</td><td>3（二四六），<b>2026-06-16 新开</b></td><td>未核</td><td>越航现 8 个欧洲城市 12 条直飞</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="哥本哈根" data-fo="河内" data-direct="1" data-wk="0" data-cat="对方航司" data-note="—" data-grp="越南"><td class="cn">哥本哈根 ⇄ 河内</td><td>越航</td><td>频次未核（NW25 开）</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="雅加达" data-direct="1" data-wk="2" data-cat="对方航司" data-note="荷航经吉隆坡 6；2026-04 起荷航–鹰航扩大代码共享" data-grp="印尼"><td class="cn">阿姆斯特丹 ⇄ 雅加达</td><td>印尼鹰航 GA088/089（777-300ER）</td><td>2；7/1–10/21 加至 3</td><td>未核</td><td>荷航经吉隆坡 6；2026-04 起荷航–鹰航扩大代码共享</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="巴厘" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="<b>唯一「同机」欧洲–巴厘</b>，经新加坡经停，非直飞" data-grp="印尼"><td class="cn">阿姆斯特丹 ⇄ 巴厘</td><td>荷航（经新加坡同机）</td><td>7</td><td>未核</td><td><b>唯一「同机」欧洲–巴厘</b>，经新加坡经停，非直飞</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div><h3>无直飞</h3><div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp gone" data-cn="伦敦" data-fo="巴厘" data-direct="0" data-wk="0" data-cat="无直飞" data-note="<b>没有任何欧洲门户直飞巴厘</b>；经海湾/伊斯坦布尔/新加坡/吉隆坡/多哈（鹰航 2026 新开雅加达–多哈）" data-grp="印尼"><td class="cn">伦敦 ⇄ 巴厘</td><td><s>无</s></td><td>0</td><td>—</td><td><b>没有任何欧洲门户直飞巴厘</b>；经海湾/伊斯坦布尔/新加坡/吉隆坡/多哈（鹰航 2026 新开雅加达–多哈）</td><td><span class="mini">[C]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s9">九、印度洋<span class="zh">马尔代夫 · 斯里兰卡</span></h2>
+<div class="kicker">马尔代夫直飞极薄且季节性：伦敦英航＋维珍（10/27 起）、罗马 ITA（NW26）、巴黎法航未核；主流仍经海湾三大/土航。英航 10/23 新开盖特威克–科伦坡。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="马累" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="—" data-grp="印度洋"><td class="cn">伦敦 ⇄ 马累</td><td>英航 · <b>维珍</b>（季节）</td><td>英航未核 · 维珍 10/27 起 3 → 12/1 起 7（至 4 月底）</td><td>未核</td><td>—</td><td><span class="mini">[D][A]</span></td></tr>
+<tr class="tp" data-cn="罗马" data-fo="马累" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="—" data-grp="印度洋"><td class="cn">罗马 ⇄ 马累</td><td>ITA（A330-900）</td><td>NW26 3 → 4（1/11）→ 5（2/4），季节性</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="马累" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="苏黎世 Edelweiss、法兰克福 Condor 未核；阿联酋马累–科伦坡段仍停" data-grp="印度洋"><td class="cn">巴黎 ⇄ 马累</td><td>法航</td><td>未核</td><td>未核</td><td>苏黎世 Edelweiss、法兰克福 Condor 未核；阿联酋马累–科伦坡段仍停</td><td><span class="mini">—</span></td></tr>
+<tr class="tp" data-cn="伦敦" data-fo="科伦坡" data-direct="1" data-wk="10" data-cat="对方航司" data-note="—" data-grp="印度洋"><td class="cn">伦敦 ⇄ 科伦坡</td><td><b>斯里兰卡航空</b>（希思罗）· 英航（盖特威克）</td><td>斯航 7 · 英航 3（<b>2026-10-23 新开</b>）</td><td>未核</td><td>—</td><td><span class="mini">[D][A]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="科伦坡" data-direct="1" data-wk="0" data-cat="对方航司" data-note="巴黎「每周数班」未核" data-grp="印度洋"><td class="cn">法兰克福 ⇄ 科伦坡</td><td>斯里兰卡航空</td><td>有直飞，频次未核</td><td>未核</td><td>巴黎「每周数班」未核</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s10">十、首尔<span class="zh">维珍 3/29 新开</span></h2>
+<div class="kicker">韩亚 12/17 并入大韩、退星空入天合，各欧洲线频次未核。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="首尔" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="英航、大韩、韩亚未核" data-grp="韩国"><td class="cn">伦敦 ⇄ 首尔</td><td><b>维珍</b>（787-9）</td><td>7，<b>2026-03-29 新开</b></td><td>未核</td><td>英航、大韩、韩亚未核</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="首尔" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="韩国"><td class="cn">巴黎 ⇄ 首尔</td><td>法航</td><td>最多 7</td><td>未核</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="首尔" data-direct="1" data-wk="0" data-cat="欧洲航司" data-note="战前 10h30" data-grp="韩国"><td class="cn">法兰克福 ⇄ 首尔</td><td>汉莎</td><td>频次未核</td><td>13h</td><td>战前 10h30</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="首尔" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="韩国"><td class="cn">慕尼黑 ⇄ 首尔</td><td>汉莎（A350）</td><td>7（5/25–6/22 降 6）</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="首尔" data-direct="1" data-wk="5" data-cat="欧洲航司" data-note="—" data-grp="韩国"><td class="cn">阿姆斯特丹 ⇄ 首尔</td><td>荷航</td><td>5</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="首尔" data-direct="1" data-wk="3" data-cat="欧洲航司" data-note="—" data-grp="韩国"><td class="cn">苏黎世 ⇄ 首尔</td><td>瑞航（A350）</td><td>3（二五日）</td><td>未核</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="赫尔辛基" data-fo="首尔" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="大韩/韩亚各欧洲线未核；12/17 合并" data-grp="韩国"><td class="cn">赫尔辛基 ⇄ 首尔</td><td>芬航</td><td>7</td><td>13h45</td><td>大韩/韩亚各欧洲线未核；12/17 合并</td><td><span class="mini">[A]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s11">十一、香港 · 台北<span class="zh">国泰五城，长荣三城</span></h2>
+<div class="kicker">国泰伦敦 5 班/日、马德里 10/25 起每日；汉莎慕尼黑–香港继续停飞。长荣伦敦、阿姆斯特丹经曼谷，非直飞；星宇 8/1 首飞欧洲（布拉格）。</div>
+<div class="tblwrap"><table class="wide"><thead><tr><th>城市对</th><th>承运人 ＋ 航班号</th><th>班次/周（每方向）</th><th>时长</th><th>备注</th><th>来源</th></tr></thead><tbody>
+<tr class="tp" data-cn="伦敦" data-fo="香港" data-direct="1" data-wk="42" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">伦敦 ⇄ 香港</td><td><b>国泰</b>（5×日）· 英航</td><td>国泰 35（4 月起从 32）· 英航 7</td><td>未核</td><td>—</td><td><span class="mini">[S][D]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="香港" data-direct="1" data-wk="8" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">巴黎 ⇄ 香港</td><td>国泰</td><td>8</td><td>未核</td><td>—</td><td><span class="mini">[S]</span></td></tr>
+<tr class="tp" data-cn="法兰克福" data-fo="香港" data-direct="1" data-wk="14" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">法兰克福 ⇄ 香港</td><td>国泰 · <b>汉莎</b>（787-9 Allegris）</td><td>各 7</td><td>14h 级</td><td>—</td><td><span class="mini">[D][S]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="香港" data-direct="1" data-wk="4" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">慕尼黑 ⇄ 香港</td><td>国泰</td><td>4；<b>汉莎慕尼黑–香港继续停飞</b></td><td>未核</td><td>—</td><td><span class="mini">[D][S]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="香港" data-direct="1" data-wk="11" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">阿姆斯特丹 ⇄ 香港</td><td>国泰 · 荷航</td><td>国泰 7 · 荷航 4</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="苏黎世" data-fo="香港" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">苏黎世 ⇄ 香港</td><td>国泰 · 瑞航</td><td>国泰 7；瑞航未核</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="米兰" data-fo="香港" data-direct="1" data-wk="7" data-cat="对方航司" data-note="罗马国泰未核" data-grp="港台"><td class="cn">米兰 ⇄ 香港</td><td>国泰</td><td>7</td><td>未核</td><td>罗马国泰未核</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="马德里" data-fo="香港" data-direct="1" data-wk="4" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">马德里 ⇄ 香港</td><td>国泰</td><td>4 → 10/25 起 7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="赫尔辛基" data-fo="香港" data-direct="1" data-wk="7" data-cat="欧洲航司" data-note="—" data-grp="港台"><td class="cn">赫尔辛基 ⇄ 香港</td><td>芬航</td><td>7</td><td>14h</td><td>—</td><td><span class="mini">[A]</span></td></tr>
+<tr class="tp" data-cn="巴黎" data-fo="台北" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">巴黎 ⇄ 台北</td><td>长荣 · 华航 · 法航</td><td>长荣 7；华航、法航未核</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="米兰" data-fo="台北" data-direct="1" data-wk="7" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">米兰 ⇄ 台北</td><td>长荣</td><td>7</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="慕尼黑" data-fo="台北" data-direct="1" data-wk="4" data-cat="对方航司" data-note="—" data-grp="港台"><td class="cn">慕尼黑 ⇄ 台北</td><td>长荣</td><td>4</td><td>未核</td><td>—</td><td><span class="mini">[D]</span></td></tr>
+<tr class="tp" data-cn="阿姆斯特丹" data-fo="台北" data-direct="1" data-wk="0" data-cat="对方航司" data-note="伦敦长荣亦经曼谷；华航伦敦/法兰克福/维也纳未核；星宇 8/1 新开台北–布拉格 3→4" data-grp="港台"><td class="cn">阿姆斯特丹 ⇄ 台北</td><td>长荣（经曼谷）· 华航 · 荷航</td><td>长荣非直飞；华航、荷航未核</td><td>未核</td><td>伦敦长荣亦经曼谷；华航伦敦/法兰克福/维也纳未核；星宇 8/1 新开台北–布拉格 3→4</td><td><span class="mini">[D]</span></td></tr>
+</tbody></table></div>
+
+<h2 id="s12">十二、度假线<span class="zh">泰国 · 巴厘 · 马尔代夫</span></h2>
+
+<div class="tblwrap"><table class="wide" style="min-width:680px">
+<thead><tr><th>目的地</th><th>直飞可达</th><th>必经中转</th></tr></thead><tbody>
+<tr><td class="cn">曼谷</td><td>伦敦（盖特威克英航／希思罗泰航）· 巴黎 · 法兰克福 · 慕尼黑 · 阿姆斯特丹 · 苏黎世 · 米兰 · 赫尔辛基 · 北欧三都</td><td><b>马德里</b>：卡塔尔（17/周）/ 阿联酋（14）/ 新航经巴塞罗那（10/26 起）/ 土航</td></tr>
+<tr><td class="cn">普吉</td><td>赫尔辛基（芬航冬 5）· 巴黎（法航冬 3）· 伦敦（维珍 10/18 起 3；Norse 盖特威克 3）· 斯德哥尔摩/奥斯陆（Norse 各 1）</td><td>德语区 Edelweiss/Condor/Discover 未核；其余经曼谷或海湾</td></tr>
+<tr><td class="cn">巴厘</td><td><b>无</b>；荷航阿姆斯特丹–新加坡–巴厘同机</td><td>海湾三大 · 伊斯坦布尔 · 新加坡（新航从欧洲 12 城接）· 吉隆坡 · 多哈</td></tr>
+<tr><td class="cn">马尔代夫</td><td>伦敦（英航；维珍 10/27 起季节）· 罗马（ITA NW26 季节）</td><td>海湾三大 · 土航 · 斯里兰卡航空经科伦坡（阿联酋马累–科伦坡段仍停）</td></tr>
+</tbody></table></div>
+<div class="callout warncall"><div class="ch">2026 特有风险</div>
+<p>海湾中转仍在 EASA 冲突区警示下（至 9/30），多哈进出走限定走廊；7 月停火破裂后不能视为「已恢复正常」。<b>欧洲人的度假线上，2026 年海湾中转的时间与取消风险，比俄领空绕飞的时长问题更实际。</b></p></div>
+
+<h2 id="s13">十三、2026 新开与停飞<span class="zh"></span></h2>
+
+<h3>新开 / 加密</h3>
+<ul class="clean">
+  <li>3/25 英航 伦敦–羽田 2 班/日 · 印航 罗马–德里恢复 4/周 · 3/29 <b>维珍 伦敦–首尔</b>每日 · 4 月 国泰 伦敦 32→35、巴黎 7→8。</li>
+  <li>6/1 汉莎 法兰克福–迪拜复飞 · 维珍 伦敦–班加罗尔 7→13 · 6/16 <b>越航 河内–阿姆斯特丹</b> 3/周 · 7/1 <b>泰航 曼谷–阿姆斯特丹复飞</b>每日 · 8/1 星宇 台北–布拉格 · 8/1 新航 阿姆斯特丹 7→10 · 9/1 印航恢复 145 班/周 · 9/1、10/1 日航 巴黎/伦敦换 A350-1000。</li>
+  <li>10/18 <b>维珍 伦敦–普吉</b> 3/周 · 10/23 英航 盖特威克–科伦坡 3/周 · 10/25 新航 盖特威克 14、法兰克福 20、慕尼黑 10、米兰独立 7 · 国泰 马德里 4→7 · 阿提哈德 阿姆斯特丹 14 · 芬航 赫尔辛基–曼谷–墨尔本 · 10/26 新航 新加坡–巴塞罗那–马德里 5 · 10/27 维珍 伦敦–马累复飞 · 12/1 泰航 巴黎 14、12/16 慕尼黑 10、2027-01-16 苏黎世 11。</li>
+</ul>
+<h3>停飞 / 减班</h3>
+<ul class="clean">
+  <li><b>汉莎</b>：慕尼黑–香港 3/29 起继续停飞；慕尼黑–新加坡 7→5 全季；法兰克福–德里 6/2–7/4 7→5；法兰克福–阿布扎比/利雅得/达曼/德黑兰停至 10/24。</li>
+  <li><b>英航</b>：伦敦–迪拜/多哈/巴林/安曼冲突期停至 4/30–5/31。<b>维珍</b>：利雅得无限期停、迪拜临时停（复飞未核）。</li>
+  <li><b>ITA</b> 罗马–曼谷 5–6 月停两月。<b>印航</b> 6–8 月减班（哥本哈根/米兰/维也纳/苏黎世/巴黎），9/1 恢复。</li>
+  <li><b>阿联酋</b>：马累–科伦坡段、巴格达、巴士拉、德黑兰仍停。<b>卡塔尔</b>：2/28 停 → 6/16 全网复 → 7 月再受袭，仍限定走廊；盖特威克 2×日→7。</li>
+</ul>
+
+<h2 id="s14">十四、口径<span class="zh">哪些能信，哪些不能</span></h2>
+
+<div class="callout"><div class="ch">口径</div>
+<ul class="clean">
+  <li>「直飞」＝同一航班号无中转；长荣台北–曼谷–伦敦、荷航阿姆斯特丹–新加坡–巴厘这类同机经停单独标注，wk 记 0 不计入直飞。</li>
+  <li>班次每方向每周；「每日」记 7；季节差异按 NS26 / NW26 分写。</li>
+  <li>[S] AeroRoutes；[A] 航司新闻稿/时刻表；[D] Simple Flying / TTR / Aviation Week / Mainly Miles 等；[C] 聚合站/常识。前十最密欧亚城市对<b>未核</b>（OAG 榜单 403）。</li>
+</ul></div>
+
+<div class="callout"><div class="ch">🔴 逐线票价一律未核，这是有意的</div>
+<p>欧亚线经海湾中转的报价与直飞差一倍以上，且随冲突局势周周变。<b>要看某天的分布，用 Google Flights 的价格图表。</b></p></div>
+
+<div class="callout warncall"><div class="ch">已知未核项（不得当事实用）</div>
+<ul class="clean">
+  <li>海湾三家＋土航吃掉欧亚中转份额的百分比（只有阿联酋 13% 一个数）。</li>
+  <li>英航 伦敦–新加坡/香港/孟买/阿布扎比/首尔/马累班次；汉莎 法兰克福–曼谷/新加坡/羽田/首尔/孟买、慕尼黑–羽田班次；法兰克福–北京是否恢复。</li>
+  <li>瑞航除苏黎世–首尔外全部班次；法航 巴黎–德里/孟买/迪拜/马累/台北/香港班次；荷航 阿姆斯特丹–台北/科伦坡是否存在。</li>
+  <li>全日空 7 条欧洲线全部班次；大韩/韩亚全部欧洲线；华航全部欧洲线；斯里兰卡航空 法兰克福/巴黎班次。</li>
+  <li>Edelweiss/Condor/Discover/奥航 至普吉/马累是否存在；卡塔尔 法兰克福/慕尼黑/苏黎世/罗马/米兰班次；阿联酋 法兰克福/阿姆斯特丹/苏黎世/米兰总班次。</li>
+  <li>印航 伦敦–孟买、法兰克福–德里、阿姆斯特丹–德里班次及 9/1 恢复后冬季具体班次；北欧航空 哥本哈根–曼谷冬季班次；越航 胡志明侧各欧洲线。</li>
+  <li>卡塔尔 7 月停火破裂后 9 月的实际运营率。</li>
+</ul></div>
+
+<div class="note"><b>本页不做什么</b>：不比酒店 · 不比刷卡倍率 · 不排申卡。<b>中国大陆</b>去《欧中航线》。
+<b>会过期的部分</b>：航季换季（每年 3 月底与 10 月底）会大改班次，<b>换季后必须重核</b>；海湾局势按周变。</div>
+<footer>中国出发 · 美国出发 · 欧洲出发 三家族同一设计系统，与 <a href="https://chronicle.klay-wang.com">Market Chronicle</a> 同源 · 班次按每方向每周 · 逐线票价一律未核 · 换季重核</footer>
+</div>
+
+<script>
+var d=document.documentElement;
+try{var s=localStorage.getItem('fm-theme');if(s)d.setAttribute('data-theme',s);}catch(e){}
+/* 切换＝看板同款（源=访客看板.html←klay-site theme-toggle.js）：旋转+圆形揭示；钥匙仍是 fm-theme */
+(function(){var btn=document.getElementById('darkBtn');
+function set(t){d.setAttribute('data-theme',t);try{localStorage.setItem('fm-theme',t);}catch(e){}}
+btn.addEventListener('click',function(){
+  var next=d.getAttribute('data-theme')==='dark'?'light':'dark';
+  btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spin');
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce||typeof document.startViewTransition!=='function'){set(next);return;}
+  var r=btn.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+  var end=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+  document.startViewTransition(function(){set(next);}).ready.then(function(){
+    d.animate({clipPath:['circle(0px at '+x+'px '+y+'px)','circle('+end+'px at '+x+'px '+y+'px)']},
+      {duration:500,easing:'cubic-bezier(0.16, 1, 0.3, 1)',pseudoElement:'::view-transition-new(root)'});
+  }).catch(function(){});
+});})();
+/* 目录 */
+(function(){
+  var toc=document.getElementById('toc'),bk=document.getElementById('tocBack'),bt=document.getElementById('tocBtn');
+  var items=[].slice.call(toc.querySelectorAll('.toc-item'));
+  function close(){toc.classList.remove('open');bk.classList.remove('show');}
+  bt.addEventListener('click',function(){toc.classList.toggle('open');bk.classList.toggle('show');});
+  bk.addEventListener('click',close);
+  items.forEach(function(a){a.addEventListener('click',close);});
+  var hs=[].slice.call(document.querySelectorAll('[id^="s"]')).filter(function(e){return /^s\d$/.test(e.id);});
+  function spy(){
+    var cur=hs.length?hs[0].id:'';
+    hs.forEach(function(h){ if(h.getBoundingClientRect().top<130) cur=h.id; });
+    items.forEach(function(a){ a.classList.toggle('active',a.getAttribute('href')==='#'+cur); });
+  }
+  window.addEventListener('scroll',spy,{passive:true}); spy();
+})();
+
+</script>
+<script>/* 星空滚动淡出：看板同款 data-scrolled 开关 */
+addEventListener("scroll",function(){
+  if(scrollY>40){document.documentElement.setAttribute("data-scrolled","");}
+  else{document.documentElement.removeAttribute("data-scrolled");}
+},{passive:true});</script>
+<script>
+/* 流向图适配器：解析本页所有 tr.tp（data-cn / data-fo / data-direct / data-wk / data-cat），渲染走 FlowViz。
+   数据只有表格一份，改表即改图。 */
+(function(){
+  var root=document.getElementById('flow'); if(!root||!window.FlowViz) return;
+  var CAT={'欧洲航司':'var(--accent)','对方航司':'var(--teal,#00A86B)','无直飞':'var(--muted-soft,#9B8E7C)'};
+  var FOFLAG={'曼谷':'🇹🇭','普吉':'🇹🇭','迪拜':'🇦🇪','阿布扎比':'🇦🇪','多哈':'🇶🇦','新德里':'🇮🇳','孟买':'🇮🇳','东京':'🇯🇵','大阪':'🇯🇵','新加坡':'🇸🇬','河内':'🇻🇳','胡志明':'🇻🇳','雅加达':'🇮🇩','巴厘':'🇮🇩','马累':'🇲🇻','科伦坡':'🇱🇰','首尔':'🇰🇷','香港':'🇭🇰','台北':'🇹🇼'};
+  var OFLAG='🇪🇺', OGRP='欧洲', DGRP='亚洲';
+  function txt(td){ return (td.textContent||'').replace(/\s+/g,' ').trim(); }
+  function num(t){ var m=String(t).match(/\d[\d,]*/); return m?+m[0].replace(/,/g,''):0; }
+  var rows=[];
+  document.querySelectorAll('tr.tp').forEach(function(tr){
+    var td=tr.querySelectorAll('td'); if(td.length<3) return;
+    var cn=tr.getAttribute('data-cn'), fo=tr.getAttribute('data-fo'); if(!cn||!fo) return;
+    rows.push({cn:cn,fo:fo,direct:tr.getAttribute('data-direct')==='1',
+      wk:+(tr.getAttribute('data-wk')||0), cat:tr.getAttribute('data-cat')||'其他', grp:tr.getAttribute('data-grp')||'',
+      car:txt(td[1]),fq:txt(td[2]),dur:txt(td[3]||''),note:tr.getAttribute('data-note')||''});
+  });
+  if(!rows.length) return;
+  var dir='both', grp='';
+  var GRPS=[]; rows.forEach(function(r){ if(r.grp&&GRPS.indexOf(r.grp)<0) GRPS.push(r.grp); });
+  function tip(r,d){ return '<b>'+(d==='out'?r.cn+' → '+r.fo:r.fo+' → '+r.cn)+'</b>'+
+    (r.direct?'':'🔴 已退出 · ')+r.cat+(r.wk?' · '+r.wk+' 班/周（每方向）':'')+'<br>'+r.car+' · '+r.fq+
+    (r.dur&&r.dur!=='未核'?' · '+r.dur:'')+(r.note?'<br>'+r.note:''); }
+  function build(){
+    var legs=[];
+    rows.filter(function(r){ return !grp||r.grp===grp; }).forEach(function(r){
+      if(dir!=='in') legs.push({o:r.cn,d:r.fo,r:r,side:'out'});
+      if(dir!=='out') legs.push({o:r.fo,d:r.cn,r:r,side:'in'});
+    });
+    var O=[],D=[];
+    legs.forEach(function(l){ if(O.indexOf(l.o)<0)O.push(l.o); if(D.indexOf(l.d)<0)D.push(l.d); });
+    var isCN=function(x){ return rows.some(function(r){return r.cn===x;}); };
+    /* 先按国别分组（中国城市在前），组内再按航线数降序 —— 否则分组标签会来回跳 */
+    var srt=function(arr,k){ return function(a,b){ var ca=isCN(a),cb=isCN(b); if(ca!==cb) return ca?-1:1;
+      return arr.filter(function(l){return l[k]===b;}).length-arr.filter(function(l){return l[k]===a;}).length; }; };
+    O.sort(srt(legs,'o')); D.sort(srt(legs,'d'));
+    var nodes=[],edges=[];
+    O.forEach(function(o){ var ls=legs.filter(function(l){return l.o===o;}), dn=ls.filter(function(l){return l.r.direct;}).length;
+      nodes.push({id:'o:'+o,col:0,label:(isCN(o)?OFLAG+' ':(FOFLAG[o]||'')+' ')+o,sub:ls.length+' 条（直飞 '+dn+'）',group:isCN(o)?'— '+OGRP+'出发 —':'— '+DGRP+'出发 —'}); });
+    D.forEach(function(d){ var ls=legs.filter(function(l){return l.d===d;});
+      var w=ls.reduce(function(a,l){return a+(l.r.wk||0);},0);
+      nodes.push({id:'d:'+d,col:1,label:(isCN(d)?OFLAG+' ':(FOFLAG[d]||'')+' ')+d,sub:ls.length+' 条进港'+(w?' · '+w+' 班/周':''),group:isCN(d)?'— 飞往'+OGRP+' —':'— '+DGRP+' —'}); });
+    legs.forEach(function(l){ var w=Math.max(.6,(l.r.wk||1)/7);
+      edges.push({a:'o:'+l.o,b:'d:'+l.d,w:w,width:Math.max(1,Math.min(9,.9*w+1)),cat:l.r.cat,
+        color:CAT[l.r.cat]||'var(--muted)',dash:!l.r.direct,opacity:l.r.direct?.5:.32,tip:tip(l.r,l.side)}); });
+    return {id:'rf',W:1100,top:44,bottom:20,isolate:'touch',particleDiv:7,
+      cols:[{label:'出发',x:[40,244],kind:'card',h:38,gap:4,groupGap:16},
+            {label:'目的地（按航线数排）',x:[866,1064],kind:'card',h:34,gap:3,groupGap:16}],
+      legend:Object.keys(CAT).map(function(k){return {k:k,label:k,color:CAT[k]};}),
+      controls:[{type:'pills',label:'方向',options:[{v:'out',label:OGRP+'→'+DGRP},{v:'in',label:DGRP+'→'+OGRP},{v:'both',label:'双向'}],value:dir,
+                 onChange:function(v){dir=v;h.update(build());}}]
+        .concat(GRPS.length>1?[{type:'pills',label:'目的地',options:[{v:'',label:'全部'}].concat(GRPS.map(function(g){return {v:g,label:g};})),value:grp,
+                 onChange:function(v){grp=v;h.update(build());}}]:[])
+        .concat([{type:'legend',label:'承运方'},{type:'reset',onReset:function(){dir='both';grp='';h.update(build());}}]),
+      nodes:nodes,edges:edges,
+      note:function(st){ var nd=st.lit.filter(function(e){return !e.dash;}).length;
+        return '亮着 <b>'+st.lit.length+'</b> 条（直飞 '+nd+'）'+(st.sel?'，只看 <b>'+st.sel.slice(2)+'</b>':'')+
+        '。<b>线粗＝每周班次</b>，虚线＝需中转。班次按每方向计，两个方向相同。渲染＝FlowViz v'+FlowViz.version+'。'; }};
+  }
+  var h=FlowViz.embed(root,build()); window.rfFlow=h;
+})();
+</script>
+</body>
+</html>
