@@ -14,6 +14,10 @@
 
 **Live (deploying): <https://atlas.klay-wang.com/>** · Sister site: [Market Chronicle](https://chronicle.klay-wang.com/)
 
+[![World flow: three departure families → seven destination regions](docs/img/flow_world.png)](index.html)
+
+*Home page: three departure families → seven destination regions. Line width = verified weekly nonstop frequencies summed per page; red = China departures, green = US departures, grey = Europe departures.*
+
 ## What it is
 
 Three **departure families**, seventeen pages, one home page with a world-flow diagram.
@@ -36,6 +40,25 @@ Every page follows the same structure:
 **Mirror pages share data, not research.** `regions/us_cn.py` declares `MIRROR_OF = "usa"`,
 borrows the source module's routes, and only writes its own narrative, default flow direction,
 and an auto-generated "where you are → where you can fly nonstop" table (`regions/_mirror.py`).
+
+## What a page looks like
+
+Every page carries one interactive flow diagram rendered from its own tables. Direction, destination
+country and carrier type are filters; click a node to isolate it.
+
+| China → US (the only corridor under a hard 50/50 bilateral cap) |
+|---|
+| [![China → US nonstop flows](docs/img/flow_cn_us.png)](中国出发/中美航线.html) |
+
+| US → Europe (Open Skies, no cap; three joint ventures hold 85 % of capacity) |
+|---|
+| [![US → Europe nonstop flows](docs/img/flow_us_eu.png)](美国出发/美欧航线.html) |
+
+| US → Asia (Hong Kong vs Taipei as the transit port home) |
+|---|
+| [![US → Asia nonstop flows](docs/img/flow_us_asia.png)](美国出发/美亚航线.html) |
+
+Red = home carriers of the departure family, green = the other side's carriers, grey dashed = discontinued or no nonstop.
 
 ## Conventions
 
