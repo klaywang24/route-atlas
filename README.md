@@ -5,7 +5,7 @@
 > table with source grades, policy and traffic-rights background, and an explicit list of
 > what could **not** be verified. **Pure static HTML, no server, no build step, zero running cost.**
 
-[![pages](https://img.shields.io/badge/pages-18%20route%20pages%20%C2%B7%203%20families-2b5f8f)](#what-it-is)
+[![pages](https://img.shields.io/badge/pages-17%20route%20pages%20%C2%B7%203%20families-2b5f8f)](#what-it-is)
 [![routes](https://img.shields.io/badge/routes-1%2C208%20rows%20%C2%B7%20per--direction%20weekly-4a5d3a)](#conventions)
 [![fares](https://img.shields.io/badge/fares-deliberately%20unverified-b8893e)](#conventions)
 [![License](https://img.shields.io/badge/license-PolyForm--Noncommercial--1.0.0-4a5d3a)](LICENSE)
@@ -20,7 +20,7 @@
 
 ## What it is
 
-Three **departure families**, eighteen pages, one home page with a world-flow diagram.
+Three **departure families**, seventeen pages, one home page with a world-flow diagram.
 Content is in Chinese; the data modules and tooling are language-neutral.
 
 | Family | Pages |
