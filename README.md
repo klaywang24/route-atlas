@@ -9,7 +9,7 @@
 [![routes](https://img.shields.io/badge/routes-1%2C208%20rows%20%C2%B7%20per--direction%20weekly-4a5d3a)](#conventions)
 [![fares](https://img.shields.io/badge/fares-deliberately%20unverified-b8893e)](#conventions)
 [![License](https://img.shields.io/badge/license-PolyForm--Noncommercial--1.0.0-4a5d3a)](LICENSE)
-[![Live](https://img.shields.io/badge/live-atlas.klay--wang.com%20(soon)-a0392f)](https://atlas.klay-wang.com/)
+[![Live](https://img.shields.io/badge/live-atlas.klay--wang.com%20(deploying)-a0392f)](https://atlas.klay-wang.com/)
 [![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-README-2b5f8f)](README.zh.md)
 
 **Live (deploying): <https://atlas.klay-wang.com/>** · Sister site: [Market Chronicle](https://chronicle.klay-wang.com/)
