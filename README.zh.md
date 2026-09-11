@@ -46,7 +46,7 @@ python3 tools/build_theme.py
 
 ## 设计
 
-壳与调色板同 [Market Chronicle](https://chronicle.klay-wang.com)：米色／夜色、目录胶囊、日夜切换、星空。流向图走 `flow-viz` skill 的嵌入式运行时，红线＝中国航司、绿线＝对方航司、灰虚线＝已退出或无直飞。
+壳与调色板同 [Market Chronicle](https://chronicle.klay-wang.com)：米色／夜色、目录胶囊、日夜切换、星空。流向图走 `flow-viz` skill 的嵌入式运行时，红线＝中国航司、绿线＝对方航司、灰虚线＝已退出或无直飞。README 里的动图用 `tools/record_flow_gif.py` 从实际页面录，换季重核后重录一遍。
 
 ## 状态
 
