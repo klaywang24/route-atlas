@@ -4,6 +4,7 @@
 用法：
   python3 -m venv .pwenv && .pwenv/bin/pip install playwright pillow      # 一次性；用系统 Chrome，不下载浏览器
   .pwenv/bin/python tools/record_flow_gif.py index.html docs/img/flow_world.gif --size 1180x530 [--dir out] [--frames 36 --dt 90]
+  .pwenv/bin/python tools/record_flow_gif.py 中国出发/中美航线.html docs/img/flow_cn_us.gif --size 1180x590 --dir out   # 单向视角，双向太密
 做法：复制页面 → 追加一段只显示 #flow 的 CSS（放 </body> 前才压得住主题样式）→ 可选把默认方向改成单向 → Playwright 开系统 Chrome 连拍 → Pillow 合成 GIF。
 """
 import io, os, sys, tempfile
