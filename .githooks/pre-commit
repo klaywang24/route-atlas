@@ -1,0 +1,5 @@
+#!/bin/sh
+# 拦住改了生成物而不是生成器/数据的提交。装：cp .githooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+root=$(git rev-parse --show-toplevel) || exit 0
+python3 "$root/tools/build_theme.py" --check || { echo "⛔ 调色板与 theme.css 不一致：改 theme.css 再跑 tools/build_theme.py"; exit 1; }
+python3 "$root/tools/inject_flowviz.py" --check || { echo "⛔ flowviz 运行时漂移：跑 tools/inject_flowviz.py inject <页>"; exit 1; }

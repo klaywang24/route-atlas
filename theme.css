@@ -1,0 +1,42 @@
+/* 五件套共用的调色板。唯一实现，别在各文件里再写一份 :root。
+   改这里之后跑一次： python3 build_theme.py
+   （--check 只读比对，已挂 pre-commit）
+
+   为什么要有它：抽取之前这套色散在 5 份 HTML 里、三种不同形状（20/15/16 个变量），
+   而且已经漂了——万豪选择器与航司选择器的 accent-bg/gold-soft/teal-soft 三个
+   透明度值与另外两份不一致（.04 vs .05、.12 vs .14、.10 vs .12）。没人会发现。
+
+   深色三条规则的分工：
+     :root                                        亮色，基准
+     @media(prefers-color-scheme) :not([light])   跟随系统
+     :root[data-theme="dark"]                     手动切换，优先级最高
+   五份 HTML 都有手动开关（localStorage fm-theme，2026-08-17 起统一），设了值就走第三条；
+   没设值时跟随系统。同一把钥匙，任一页切换、五页同步。 */
+
+:root{
+ --bg:#F1ECDF;--bg-card:#EBE5D6;--bg-card-hover:#E5DECC;--bg-deep:#E0D8C2;
+ --ink:#1A1410;--ink-soft:#3D352D;--muted:#6B5D4F;--muted-soft:#9B8E7C;
+ --accent:#FF2400;--accent-deep:#CC1D00;--accent-soft:rgba(255,36,0,.08);--accent-bg:rgba(255,36,0,.04);
+ --gold:#B8893E;--gold-soft:rgba(184,137,62,.12);
+ --teal:#00A86B;--teal-soft:rgba(0,168,107,.10);
+ --moss:#00A86B;--moss-soft:rgba(0,168,107,.10);
+ --rule:#C8BFA8;--rule-soft:#D8D0BA;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}}
+:root[data-theme="dark"]{
+ --bg:#16140F;--bg-card:#1F1C16;--bg-card-hover:#272319;--bg-deep:#13110C;
+ --ink:#EDE6D6;--ink-soft:#CFC6B4;--muted:#A0937E;--muted-soft:#7A6F5E;
+ --accent:#FF2400;--accent-deep:#FF6A50;--accent-soft:rgba(255,36,0,.12);--accent-bg:rgba(255,36,0,.05);
+ --gold:#D6A95C;--gold-soft:rgba(214,169,92,.14);
+ --teal:#2ED197;--teal-soft:rgba(46,209,151,.12);
+ --moss:#2ED197;--moss-soft:rgba(46,209,151,.12);
+ --rule:#3A352A;--rule-soft:#2C281F;
+}
