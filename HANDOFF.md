@@ -24,7 +24,7 @@
 
 **研究员报告落仓**：`research/2026-09-11-*.md` 十一份（美欧 · 美亚 · 美墨加勒比 · 美南美 · 美澳新 · 欧亚 · 欧非 · 中俄 · 欧洲人去哪排行 · 中欧七国加香港）。
 
-**下一动作**：交 Klay 验（机械层＋数据层）→ 建站 atlas.klay-wang.com（Cloudflare Pages 接这个公开仓） → 可选 apple-design 复审一轮。
+**下一动作**：交 Klay 验（机械层＋数据层）→ 建站 atlas.klay-wang.com（Cloudflare Pages 接这个公开仓）→ 建站后把 README 里四张动图的链接从仓内相对路径改成站内 URL → 可选 apple-design 复审一轮。
 
 ## 已定的判据
 
