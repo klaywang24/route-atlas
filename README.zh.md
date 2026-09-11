@@ -2,6 +2,12 @@
 
 > English README: [README.md](README.md)
 
+[![pages](https://img.shields.io/badge/pages-18%20route%20pages%20%C2%B7%203%20families-2b5f8f)](#)
+[![routes](https://img.shields.io/badge/routes-1%2C208%20rows%20%C2%B7%20per--direction%20weekly-4a5d3a)](#)
+[![fares](https://img.shields.io/badge/fares-deliberately%20unverified-b8893e)](#)
+[![License](https://img.shields.io/badge/license-PolyForm--Noncommercial--1.0.0-4a5d3a)](LICENSE)
+
+
 按**出发地**分家族的国际航线情报页。每页一张流向图 ＋ 逐线表 ＋ 政策与航权背景，中文，来源分级，未核项单独列。
 
 ```
