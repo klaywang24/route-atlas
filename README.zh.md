@@ -12,9 +12,9 @@
 
 同一批航线在不同家族里是**同一份数据、不同视角**：镜像页在模块里声明 `MIRROR_OF = "usa"` 借源数据，只写自己的叙事与默认方向（样板 `regions/us_cn.py`）。
 
-![世界流向总图](docs/img/flow_world.png)
+![世界流向总图](docs/img/flow_world.gif)
 
-![中美](docs/img/flow_cn_us.png)
+![中美](docs/img/flow_cn_us.gif)
 
 ## 怎么生成
 
