@@ -111,7 +111,7 @@ a build artifact; edit `regions/*.py` and rebuild.
 Each page was built from a dedicated research pass (September 2026) against airline filings,
 AeroRoutes, Cirium/OAG figures as reported by the trade press, airport press releases and
 FlightConnections snapshots. The raw research reports, including every conflict between sources
-and every item left unverified, are kept in [`research/`](research/). Working notes and the
+and every item left unverified, are kept in [`research/`](research/) (index: [`research/README.md`](research/README.md)). Working notes and the
 current state of the project are in [`HANDOFF.md`](HANDOFF.md) (Chinese).
 
 ## License
