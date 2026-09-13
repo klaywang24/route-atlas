@@ -18,7 +18,7 @@ SHELL = os.path.join(HERE, "tools", "shell")
 
 def shell_parts():
     """壳 5 件（FOUC 脚本+CSS、body 开头、目录 spy、星空滚动、夜间切换），
-    2026-09-10 从信用卡仓的大陆差旅选店器.html 抽出，存在 tools/shell/，本仓不再依赖那个私有仓。"""
+    存在 tools/shell/。"""
     R = lambda n: io.open(os.path.join(SHELL, n), encoding="utf-8").read()
     return R("head.html"), R("top.html"), R("toc.js"), R("star.js"), R("dark.js")
 

@@ -3,7 +3,7 @@
    （--check 只读比对，已挂 pre-commit）
 
    为什么要有它：抽取之前这套色散在 5 份 HTML 里、三种不同形状（20/15/16 个变量），
-   而且已经漂了——万豪选择器与航司选择器的 accent-bg/gold-soft/teal-soft 三个
+   而且已经漂了——其中两份的 accent-bg/gold-soft/teal-soft 三个
    透明度值与另外两份不一致（.04 vs .05、.12 vs .14、.10 vs .12）。没人会发现。
 
    深色三条规则的分工：

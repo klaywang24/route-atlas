@@ -50,7 +50,7 @@ python3 tools/build_theme.py
 
 ## 状态
 
-见 [HANDOFF.md](HANDOFF.md)。研究员原始报告在 `research/`（索引见 [research/README.md](research/README.md)）。
+研究员原始报告在 `research/`（索引见 [research/README.md](research/README.md)）。
 
 ## 许可
 
