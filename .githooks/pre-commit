@@ -4,3 +4,6 @@ root=$(git rev-parse --show-toplevel) || exit 0
 python3 "$root/tools/build_theme.py" --check || { echo "⛔ 调色板与 theme.css 不一致：改 theme.css 再跑 tools/build_theme.py"; exit 1; }
 git diff --cached --name-only | grep -q "_shot_tmp.html" && { echo "⛔ 录动图的临时页不该进仓"; exit 1; }
 python3 "$root/tools/inject_flowviz.py" --check || { echo "⛔ flowviz 运行时漂移：跑 tools/inject_flowviz.py inject <页>"; exit 1; }
+
+# 个人信息闸：暂存区新增行含个人信息 ⇒ 拒绝提交（脚本在本机私有目录，仓外没有它时跳过）
+[ -f "$HOME/Documents/个人 Agent/记忆备份/_pii_gate.py" ] && { python3 "$HOME/Documents/个人 Agent/记忆备份/_pii_gate.py" --staged || exit 1; }
