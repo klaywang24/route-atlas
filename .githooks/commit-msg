@@ -1,0 +1,8 @@
+#!/bin/sh
+# 署名闸 authorship_gate（2026-09-25 Klay 令）：带 Co-Authored-By 或作者邮箱≠klaywang24@gmail.com ⇒ 拒绝提交
+# 闸脚本不在或 python 不在 ⇒ 放行（盘中管线的自动提交不能被闸自己拦死）
+G="$HOME/.claude/hooks/authorship_gate.py"
+[ -f "$G" ] || exit 0
+PY=$(command -v python3 || echo /usr/bin/python3)
+[ -x "$PY" ] || exit 0
+exec "$PY" "$G" --commit-msg "$1"
