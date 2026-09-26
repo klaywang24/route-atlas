@@ -52,7 +52,7 @@
 <script>/* 主题先定死 light/dark（看板同款：图标显隐靠 html[data-theme] 精确匹配，属性必须始终显式；也防 FOUC）。钥匙仍是 fm-theme。 */
 (function(){var d=document.documentElement,s=null;try{s=localStorage.getItem("fm-theme");}catch(e){}
 d.setAttribute("data-theme",s||((window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"));})();</script>
-<!-- flowviz:runtime v1.0.0 -->
+<!-- flowviz:runtime v1.1.0 -->
 <style id="fv-css">
 .fv{position:relative}
 .fv .fv-wrap{position:relative;background:var(--bg-card,#f5f2ea);border:1px solid var(--rule,#c8bfa8);border-radius:10px;overflow:hidden}
@@ -83,10 +83,10 @@ d.setAttribute("data-theme",s||((window.matchMedia&&matchMedia("(prefers-color-s
 .fv .fv-note{font-size:12.5px;color:var(--muted,#6b5d4f);line-height:1.7;margin:8px 0 0}
 @media (prefers-reduced-motion:reduce){.fv canvas{display:none}}
 </style>
-<script id="fv-runtime" data-v="1.0.0">
-/* FlowViz embed runtime v1.0.0 —— 唯一实现，由 ~/.claude/skills/flow-viz/flowviz.py 注入，别手改（tools/inject_flowviz.py --check 会报） */
+<script id="fv-runtime" data-v="1.1.0">
+/* FlowViz embed runtime v1.1.0 —— 唯一实现，由 ~/.claude/skills/flow-viz/flowviz.py 注入，别手改（tools/inject_flowviz.py --check 会报） */
 (function(){
-  if(window.FlowViz && window.FlowViz.version==="1.0.0") return;
+  if(window.FlowViz && window.FlowViz.version==="1.1.0") return;
   function el(t,a,p){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
   function embed(root, spec){
@@ -144,10 +144,15 @@ d.setAttribute("data-theme",s||((window.matchMedia&&matchMedia("(prefers-color-s
           h+='<text x="'+tx+'" y="'+(nd.sub?my-3:my+4)+'">'+esc(nd.label)+'</text>'; if(nd.sub) h+='<text class="sm" x="'+tx+'" y="'+(my+12)+'">'+esc(nd.sub)+'</text>';
           if(nd.best){ if(nd.bestLogo) h+='<image href="'+nd.bestLogo+'" x="'+(p.x1-8-(nd.bestW||60)-18)+'" y="'+(my-7)+'" width="14" height="14"></image>'; h+='<text class="best" x="'+(p.x1-8)+'" y="'+(my+4)+'" text-anchor="end"'+(nd.bestColor?' style="fill:'+nd.bestColor+'"':'')+'>'+esc(nd.best)+'</text>'; }
         } else { h+='<rect x="'+p.x0+'" y="'+p.y0+'" width="'+(p.x1-p.x0)+'" height="'+(p.y1-p.y0)+'" fill="'+(nd.color||'var(--muted)')+'" opacity=".85"></rect>';
-          var side=c.labelSide||'right', lx=side==='left'?p.x0-7:p.x1+7;
-          h+='<text x="'+lx+'" y="'+((p.y0+p.y1)/2+4)+'" text-anchor="'+(side==='left'?'end':'start')+'">'+esc(nd.label)+(nd.cnt!=null?' <tspan class="sm">'+nd.cnt+'</tspan>':'')+'</text>'; }
+          var side=c.labelSide||'right', lx=side==='left'?p.x0-7:p.x1+7, bm=(p.y0+p.y1)/2;
+          /* v1.1.0：条也可带小图（logo，紧贴条那一侧，文字往外让 20px）——09-26 访客流向图台湾旗要用 Klay 定的 SVG，不能用 emoji */
+          if(nd.logo){ h+='<image'+(side==='left'?' class="fv-bl" data-lx="'+lx+'"':'')+' href="'+nd.logo+'" x="'+(side==='left'?lx-15:lx)+'" y="'+(bm-5.5)+'" width="15" height="10"></image>'; lx+=side==='left'?-19:19; }
+          h+='<text x="'+lx+'" y="'+(bm+4)+'" text-anchor="'+(side==='left'?'end':'start')+'">'+esc(nd.label)+(nd.cnt!=null?' <tspan class="sm">'+nd.cnt+'</tspan>':'')+'</text>'; }
         h+='</g>'; });
       svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML=h;
+      /* 左侧标签的小图挪到文字前面（与 emoji 旗同一阅读顺序）：量得到文字宽才挪，量不到（隐藏容器）就留在条边 */
+      svg.querySelectorAll('.fv-bl').forEach(function(im){ var t=im.nextElementSibling; if(!t||!t.getBBox) return; var b; try{ b=t.getBBox(); }catch(e){ return; }
+        if(!b||!b.width) return; im.setAttribute('x',b.x); t.setAttribute('x',im.getAttribute('data-lx')); });
       var byId={}; S.nodes.forEach(function(n){byId[n.id]=n;});
       svg.querySelectorAll('.fv-node').forEach(function(g){ var id=g.getAttribute('data-id'), nd=byId[id];
         g.addEventListener('click',function(){ if(S.isolate==='none') return; sel=(sel===id?null:id); render(); if(S.onSelect) S.onSelect(sel); });
@@ -174,7 +179,7 @@ d.setAttribute("data-theme",s||((window.matchMedia&&matchMedia("(prefers-color-s
     var api={update:function(sp){ S=sp; render(); return api; }, select:function(id){ sel=id; render(); }, state:function(){ return {sel:sel,catOff:catOff}; }, reset:function(){ sel=null; catOff={}; render(); }, el:root};
     return api.update(spec);
   }
-  window.FlowViz={version:"1.0.0", embed:embed};
+  window.FlowViz={version:"1.1.0", embed:embed};
 })();
 </script>
 <!-- /flowviz:runtime -->
